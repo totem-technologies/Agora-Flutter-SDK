@@ -2544,13 +2544,13 @@ class WlAccStats {
   Map<String, dynamic> toJson() => _$WlAccStatsToJson(this);
 }
 
-/* TODO(doc): class-ContentInspectModule */
+/// @nodoc
 @JsonSerializable(explicitToJson: true)
 class ContentInspectModule {
-/* TODO(doc): property-ContentInspectModule-type */
+  /// @nodoc
   final int type;
 
-/* TODO(doc): property-ContentInspectModule-interval */
+  /// @nodoc
   final int interval;
 
   /// Constructs the [ContentInspectModule].
@@ -2564,16 +2564,16 @@ class ContentInspectModule {
   Map<String, dynamic> toJson() => _$ContentInspectModuleToJson(this);
 }
 
-/* TODO(doc): class-ContentInspectConfig */
+/// @nodoc
 @JsonSerializable(explicitToJson: true)
 class ContentInspectConfig {
-/* TODO(doc): property-ContentInspectConfig-extraInfo */
+  /// @nodoc
   final String? extraInfo;
 
-/* TODO(doc): property-ContentInspectConfig-modules */
+  /// @nodoc
   final List<ContentInspectModule> modules;
 
-/* TODO(doc): property-ContentInspectConfig-moduleCount */
+  /// @nodoc
   final int moduleCount;
 
   /// Constructs the [ContentInspectConfig].

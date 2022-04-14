@@ -450,7 +450,7 @@ abstract class RtcEngine {
   ///
   Future<void> takeSnapshot(String channel, int uid, String filePath);
 
-  /* TODO(doc): api-engine-enableContentInspect */
+  /// @nodoc
   Future<void> enableContentInspect(bool enabled, ContentInspectConfig config);
 
   ///

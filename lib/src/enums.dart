@@ -4148,17 +4148,17 @@ enum AudioDeviceTestVolumeType {
   AudioTestPlaybackVolume,
 }
 
-/* TODO(doc): enum-ContentInspectResult */
+/// @nodoc
 enum ContentInspectResult {
-/* TODO(doc): property-ContentInspectResult-ContentInspectNeutral */
+  /// @nodoc
   @JsonValue(1)
   ContentInspectNeutral,
 
-/* TODO(doc): property-ContentInspectResult-ContentInspectSexy */
+  /// @nodoc
   @JsonValue(2)
   ContentInspectSexy,
 
-/* TODO(doc): property-ContentInspectResult-ContentInspectPorn */
+  /// @nodoc
   @JsonValue(3)
   ContentInspectPorn,
 }
