@@ -269,6 +269,18 @@ class FakeRtcEngine : RtcEngineEx(), IAudioEffectManager {
     return 0
   }
 
+  override fun setLowlightEnhanceOptions(enabled: Boolean, options: LowLightEnhanceOptions?): Int {
+    return 0
+  }
+
+  override fun setVideoDenoiserOptions(enabled: Boolean, options: VideoDenoiserOptions?): Int {
+    return 0
+  }
+
+  override fun setColorEnhanceOptions(enabled: Boolean, options: ColorEnhanceOptions?): Int {
+    return 0
+  }
+
   override fun enableVirtualBackground(
     enabled: Boolean,
     backgroundSource: VirtualBackgroundSource?
