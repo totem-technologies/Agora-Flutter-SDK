@@ -1,3 +1,4 @@
+import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:flutter/material.dart';
 
 import 'examples/advanced/index.dart';
@@ -34,6 +35,20 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         appBar: AppBar(
           title: const Text('APIExample'),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                final rtcEngine = await RtcEngine.createWithContext(
+                    RtcEngineContext(config.appId));
+                rtcEngine.setEventHandler(RtcEngineEventHandler());
+                await rtcEngine.enableAudioVolumeIndication(200, 3, false);
+              },
+              child: const Text(
+                'Track Engine Destroy',
+                style: TextStyle(color: Colors.white),
+              ),
+            )
+          ],
         ),
         body: _isConfigInvalid()
             ? const InvalidConfigWidget()
