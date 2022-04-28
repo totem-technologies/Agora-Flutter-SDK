@@ -28,11 +28,7 @@ void main() {
       final rtcEngine = await RtcEngine.createWithContext(context);
       rtcEngine.setEventHandler(RtcEngineEventHandler());
 
-      await rtcEngine.setChannelProfile(ChannelProfile.LiveBroadcasting);
-
-      await rtcEngine.setAudioProfile(
-          AudioProfile.MusicHighQuality, AudioScenario.GameStreaming);
-      await rtcEngine.enableAudioVolumeIndication(500, 3, false);
+      await rtcEngine.enableAudioVolumeIndication(200, 3, false);
 
       await methodChannel.invokeMethod('forceDestroyIrisRtcEngine');
     },

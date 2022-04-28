@@ -176,7 +176,10 @@ namespace
     callApiMethodCallHandlerSub_ = std::make_unique<CallApiMethodCallHandler>(engine_sub_.get());
   }
 
-  AgoraRtcEnginePlugin::~AgoraRtcEnginePlugin() {}
+  AgoraRtcEnginePlugin::~AgoraRtcEnginePlugin() {
+    engine_main_->SetEventHandler(nullptr);
+    engine_sub_->SetEventHandler(nullptr);
+  }
 
   EventSink<EncodableValue> *AgoraRtcEnginePlugin::event_sink()
   {
