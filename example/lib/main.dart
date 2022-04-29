@@ -1,3 +1,4 @@
+import 'package:agora_rtc_engine/rtc_channel.dart';
 import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:flutter/material.dart';
 
@@ -42,6 +43,11 @@ class _MyAppState extends State<MyApp> {
                     RtcEngineContext(config.appId));
                 rtcEngine.setEventHandler(RtcEngineEventHandler());
                 await rtcEngine.enableAudioVolumeIndication(200, 3, false);
+
+                final rtcChannel = await RtcChannel.create('testdestroy');
+                rtcChannel.setEventHandler(RtcChannelEventHandler());
+                await rtcChannel.joinChannel(
+                    null, null, 0, ChannelMediaOptions());
               },
               child: const Text(
                 'Track Engine Destroy',
