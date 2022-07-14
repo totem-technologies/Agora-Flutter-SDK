@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:agora_rtc_engine/src/impl/render/rtc_render_view_interface.dart';
 import 'package:agora_rtc_engine/src/rtc_render_view.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -11,6 +12,14 @@ import 'package:flutter/widgets.dart';
 import 'api_types.dart';
 import 'enum_converter.dart';
 import 'rtc_engine_impl.dart';
+
+State<StatefulWidget> createRtcSurfaceViewState() {
+  if (kIsWeb) {
+    return RtcSurfaceViewWebState();
+  }
+
+  return RtcSurfaceViewState();
+}
 
 ApiTypeEngine _getSetRenderModeApiType(int uid) {
   return uid == 0
@@ -26,8 +35,7 @@ ApiTypeEngine _getSetupVideoApiType(int uid) {
 
 final Map<int, MethodChannel> _channels = {};
 
-/// The implementation of [RtcSurfaceView]
-class RtcSurfaceViewState extends State<RtcSurfaceView> {
+mixin RtcSurfaceViewStateMixin on State<RtcSurfaceView> {
   int? _id;
   int? _renderMode;
   int? _mirrorMode;
@@ -52,7 +60,29 @@ class RtcSurfaceViewState extends State<RtcSurfaceView> {
 
   @override
   Widget build(BuildContext context) {
-    if (defaultTargetPlatform == TargetPlatform.android) {
+    print('_onCreatePlatformView web start 1111');
+
+    if (kIsWeb) {
+      print('_onCreatePlatformView web start');
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        child: PlatformViewLink(
+          viewType: 'AgoraSurfaceView',
+          onCreatePlatformView: _onCreatePlatformView,
+          surfaceFactory:
+              (BuildContext context, PlatformViewController controller) {
+            return PlatformViewSurface(
+              controller: controller,
+              hitTestBehavior: PlatformViewHitTestBehavior.transparent,
+              gestureRecognizers: widget.gestureRecognizers != null
+                  ? widget.gestureRecognizers!
+                  : const <Factory<OneSequenceGestureRecognizer>>{},
+            );
+          },
+        ),
+      );
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
+      print('_onCreatePlatformView web start android');
       const viewType = 'AgoraSurfaceView';
       final creationParams = {
         ..._creationParams,
@@ -76,6 +106,7 @@ class RtcSurfaceViewState extends State<RtcSurfaceView> {
         ),
       );
     } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      print('_onCreatePlatformView web start ios');
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         child: UiKitView(
@@ -85,24 +116,6 @@ class RtcSurfaceViewState extends State<RtcSurfaceView> {
           creationParams: _creationParams,
           creationParamsCodec: const StandardMessageCodec(),
           gestureRecognizers: widget.gestureRecognizers,
-        ),
-      );
-    } else if (kIsWeb) {
-      return GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        child: PlatformViewLink(
-          viewType: 'AgoraSurfaceView',
-          onCreatePlatformView: _onCreatePlatformView,
-          surfaceFactory:
-              (BuildContext context, PlatformViewController controller) {
-            return PlatformViewSurface(
-              controller: controller,
-              hitTestBehavior: PlatformViewHitTestBehavior.transparent,
-              gestureRecognizers: widget.gestureRecognizers != null
-                  ? widget.gestureRecognizers!
-                  : const <Factory<OneSequenceGestureRecognizer>>{},
-            );
-          },
         ),
       );
     }
@@ -204,6 +217,7 @@ class RtcSurfaceViewState extends State<RtcSurfaceView> {
 
   PlatformViewController _onCreatePlatformView(
       PlatformViewCreationParams params) {
+    print('_onCreatePlatformView web');
     final controller = _HtmlElementViewController(params.id, params.viewType);
     controller._initialize().then((_) {
       params.onPlatformViewCreated(params.id);
@@ -211,6 +225,44 @@ class RtcSurfaceViewState extends State<RtcSurfaceView> {
       _setData();
     });
     return controller;
+  }
+}
+
+/// The implementation of [RtcSurfaceView]
+class RtcSurfaceViewState extends State<RtcSurfaceView>
+    with RtcSurfaceViewStateMixin {}
+
+class RtcSurfaceViewWebState extends State<RtcSurfaceView>
+    with RtcSurfaceViewStateMixin {
+  static const int kUninitializedViewId = -1;
+
+  int _creationViewId = kUninitializedViewId;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _init();
+  }
+
+  Future<void> _init() async {
+    _creationViewId = await RtcRenderViewInterface.instance.createView();
+    print('RtcSurfaceViewWebState _creationViewId: $_creationViewId');
+    _onPlatformViewCreated(_creationViewId);
+    _setData();
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print(
+        'RtcSurfaceViewWebState build _creationViewId start: $_creationViewId');
+    if (_creationViewId != kUninitializedViewId) {
+      print('RtcSurfaceViewWebState build _creationViewId: $_creationViewId');
+      return RtcRenderViewInterface.instance.buildView(_creationViewId, null);
+    }
+
+    return Container();
   }
 }
 

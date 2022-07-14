@@ -79,7 +79,7 @@ class RtcSurfaceView extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState() {
-    return RtcSurfaceViewState();
+    return createRtcSurfaceViewState();
   }
 }
 

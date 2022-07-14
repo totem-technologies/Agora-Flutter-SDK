@@ -12,6 +12,8 @@ import 'dart:html';
 import 'dart:ui' as ui;
 
 import 'package:agora_rtc_engine/src/enums.dart';
+import 'package:agora_rtc_engine/src/impl/render/rtc_render_view_interface.dart';
+import 'package:agora_rtc_engine/src/impl/web/rtc_render_view_impl_web.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 import 'package:js/js.dart';
@@ -83,15 +85,32 @@ class AgoraRtcEngineWeb {
       registrar,
     ).setMethodCallHandler(pluginInstance.handleVDMMethodCall);
 
-    // ignore: undefined_prefixed_name
-    ui.platformViewRegistry.registerViewFactory('AgoraSurfaceView',
-        (int viewId) {
-      var element = DivElement();
-      MethodChannel('agora_rtc_engine/surface_view_$viewId',
-              const StandardMethodCodec(), registrar)
-          .setMethodCallHandler(
-              (call) => pluginInstance.handleViewMethodCall(call, element));
-      return element;
+    RtcRenderViewInterface.instance = RtcRenderViewImplWeb();
+
+    MethodChannel('agora_rtc_engine/web_surface_view_controller',
+            const StandardMethodCodec(), registrar)
+        .setMethodCallHandler((call) {
+      if (call.method == 'create_view') {
+        final viewId = call.arguments;
+        var element = DivElement();
+
+        MethodChannel('agora_rtc_engine/surface_view_$viewId',
+                const StandardMethodCodec(), registrar)
+            .setMethodCallHandler(
+                (call) => pluginInstance.handleViewMethodCall(call, element));
+
+        print('registerViewFactory viewId: $viewId, element: $element');
+
+        // ignore: undefined_prefixed_name
+        ui.platformViewRegistry.registerViewFactory(
+            'agora_rtc_engine/surface_view_$viewId', (int viewId) {
+          return element;
+        });
+
+        return Future.value(null);
+      }
+
+      throw UnsupportedError('Not supported for method: ${call.method}');
     });
 
     var element = ScriptElement()
@@ -101,6 +120,7 @@ class AgoraRtcEngineWeb {
     late StreamSubscription<Event> loadSubscription;
     loadSubscription = element.onLoad.listen((event) {
       loadSubscription.cancel();
+      pluginInstance._onBundleLoaded();
       pluginInstance._engineMain = _IrisRtcEngine();
       pluginInstance._engineSub = _IrisRtcEngine();
     });
@@ -111,6 +131,12 @@ class AgoraRtcEngineWeb {
   final _controllerChannel = StreamController();
   late _IrisRtcEngine _engineMain;
   late _IrisRtcEngine _engineSub;
+
+  final Completer<void> _loadBundleCompleter = Completer<void>();
+
+  void _onBundleLoaded() {
+    _loadBundleCompleter.complete(null);
+  }
 
   _IrisRtcEngine _engine(Map<String, dynamic> args) {
     bool subProcess = args['subProcess'];
@@ -125,10 +151,13 @@ class AgoraRtcEngineWeb {
   /// Note: Check the "federated" architecture for a new way of doing this:
   /// https://flutter.dev/go/federated-plugins
   Future<dynamic> handleMethodCall(MethodCall call) async {
+    await _loadBundleCompleter.future;
+
     var args = <String, dynamic>{};
     if (call.arguments != null) {
       args = Map<String, dynamic>.from(call.arguments);
     }
+    print('handleMethodCall: call.method: ${call.method}, args: ${call.arguments}');
     if (call.method == 'callApi') {
       int apiType = args['apiType'];
       if (apiType == 0) {
@@ -157,6 +186,8 @@ class AgoraRtcEngineWeb {
 
   // ignore: public_member_api_docs
   Future<dynamic> handleChannelMethodCall(MethodCall call) async {
+    await _loadBundleCompleter.future;
+
     var args = <String, dynamic>{};
     if (call.arguments != null) {
       args = Map<String, dynamic>.from(call.arguments);
@@ -172,6 +203,8 @@ class AgoraRtcEngineWeb {
 
   // ignore: public_member_api_docs
   Future<dynamic> handleADMMethodCall(MethodCall call) async {
+    await _loadBundleCompleter.future;
+
     var args = <String, dynamic>{};
     if (call.arguments != null) {
       args = Map<String, dynamic>.from(call.arguments);
@@ -188,6 +221,8 @@ class AgoraRtcEngineWeb {
 
   // ignore: public_member_api_docs
   Future<dynamic> handleVDMMethodCall(MethodCall call) async {
+    await _loadBundleCompleter.future;
+
     var args = <String, dynamic>{};
     if (call.arguments != null) {
       args = Map<String, dynamic>.from(call.arguments);
@@ -204,6 +239,10 @@ class AgoraRtcEngineWeb {
 
   // ignore: public_member_api_docs
   Future<dynamic> handleViewMethodCall(MethodCall call, Element element) async {
+    await _loadBundleCompleter.future;
+
+    print('handleViewMethodCall call.method: ${call.method}, call.arguments: ${call.arguments}, element: $element');
+
     var data = <String, dynamic>{};
     if (call.arguments != null) {
       data = Map<String, dynamic>.from(call.arguments);

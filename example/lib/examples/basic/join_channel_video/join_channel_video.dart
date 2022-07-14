@@ -23,6 +23,7 @@ class _State extends State<JoinChannelVideo> {
   List<int> remoteUid = [];
   late TextEditingController _controller;
   bool _isRenderSurfaceView = false;
+  bool _isReadyPreview = false;
 
   @override
   void initState() {
@@ -42,9 +43,19 @@ class _State extends State<JoinChannelVideo> {
     _addListeners();
 
     await _engine.enableVideo();
+
+    print('pppppp');
+
     await _engine.startPreview();
     await _engine.setChannelProfile(ChannelProfile.LiveBroadcasting);
     await _engine.setClientRole(ClientRole.Broadcaster);
+
+    print('nnnnnnnnn');
+    setState(() {
+      _isReadyPreview = true;
+    });
+
+    print('mmmmmmmm');
   }
 
   void _addListeners() {
@@ -114,6 +125,8 @@ class _State extends State<JoinChannelVideo> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isReadyPreview) return Container();
+
     return Stack(
       children: [
         Column(

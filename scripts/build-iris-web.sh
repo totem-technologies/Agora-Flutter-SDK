@@ -2,13 +2,13 @@
 
 set -e
 
-AGORA_FLUTTER_PROJECT_PATH=$(pwd)
-IRIS_PROJECT_PATH=$(pwd)/web
+AGORA_FLUTTER_PROJECT_PATH=$1
+IRIS_PROJECT_PATH=$2
 
-pushd "$AGORA_FLUTTER_PROJECT_PATH"
-echo "Updating submodule web"
-git submodule update --remote
-popd
+# pushd "$AGORA_FLUTTER_PROJECT_PATH"
+# echo "Updating submodule web"
+# git submodule update --remote
+# popd
 
 pushd "$IRIS_PROJECT_PATH"
 echo "Building Iris-Rtc-Web"
