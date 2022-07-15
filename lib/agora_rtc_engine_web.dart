@@ -92,20 +92,23 @@ class AgoraRtcEngineWeb {
         .setMethodCallHandler((call) {
       if (call.method == 'create_view') {
         final viewId = call.arguments;
-        var element = DivElement();
+        var element = DivElement()
+          ..id = 'agora_rtc_engine/surface_view_$viewId'
+          ..style.width = '100%'
+          ..style.height = '100%';
 
         MethodChannel('agora_rtc_engine/surface_view_$viewId',
                 const StandardMethodCodec(), registrar)
             .setMethodCallHandler(
                 (call) => pluginInstance.handleViewMethodCall(call, element));
 
-        print('registerViewFactory viewId: $viewId, element: $element');
+        // print('registerViewFactory viewId: $viewId, element: $element');
 
-        // ignore: undefined_prefixed_name
-        ui.platformViewRegistry.registerViewFactory(
-            'agora_rtc_engine/surface_view_$viewId', (int viewId) {
-          return element;
-        });
+        // // ignore: undefined_prefixed_name
+        // ui.platformViewRegistry.registerViewFactory(
+        //     'agora_rtc_engine/surface_view_$viewId', (int viewId) {
+        //   return element;
+        // });
 
         return Future.value(null);
       }
@@ -157,7 +160,8 @@ class AgoraRtcEngineWeb {
     if (call.arguments != null) {
       args = Map<String, dynamic>.from(call.arguments);
     }
-    print('handleMethodCall: call.method: ${call.method}, args: ${call.arguments}');
+    print(
+        'handleMethodCall: call.method: ${call.method}, args: ${call.arguments}');
     if (call.method == 'callApi') {
       int apiType = args['apiType'];
       if (apiType == 0) {
@@ -241,7 +245,8 @@ class AgoraRtcEngineWeb {
   Future<dynamic> handleViewMethodCall(MethodCall call, Element element) async {
     await _loadBundleCompleter.future;
 
-    print('handleViewMethodCall call.method: ${call.method}, call.arguments: ${call.arguments}, element: $element');
+    print(
+        'handleViewMethodCall call.method: ${call.method}, call.arguments: ${call.arguments}, element: $element');
 
     var data = <String, dynamic>{};
     if (call.arguments != null) {

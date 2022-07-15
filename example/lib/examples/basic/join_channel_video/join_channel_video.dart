@@ -46,16 +46,16 @@ class _State extends State<JoinChannelVideo> {
 
     print('pppppp');
 
-    await _engine.startPreview();
+    // await _engine.startPreview();
     await _engine.setChannelProfile(ChannelProfile.LiveBroadcasting);
     await _engine.setClientRole(ClientRole.Broadcaster);
 
-    print('nnnnnnnnn');
-    setState(() {
-      _isReadyPreview = true;
-    });
+    // print('nnnnnnnnn');
+    // setState(() {
+    //   _isReadyPreview = true;
+    // });
 
-    print('mmmmmmmm');
+    // print('mmmmmmmm');
   }
 
   void _addListeners() {
@@ -95,9 +95,9 @@ class _State extends State<JoinChannelVideo> {
   }
 
   _joinChannel() async {
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      await [Permission.microphone, Permission.camera].request();
-    }
+    // if (defaultTargetPlatform == TargetPlatform.android) {
+    //   await [Permission.microphone, Permission.camera].request();
+    // }
 
     await _engine.joinChannel(config.token, _controller.text, null, config.uid);
   }
@@ -125,8 +125,6 @@ class _State extends State<JoinChannelVideo> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_isReadyPreview) return Container();
-
     return Stack(
       children: [
         Column(
@@ -191,6 +189,7 @@ class _State extends State<JoinChannelVideo> {
   }
 
   _renderVideo() {
+    if (!_isReadyPreview) return Container();
     return Expanded(
       child: Stack(
         children: [
