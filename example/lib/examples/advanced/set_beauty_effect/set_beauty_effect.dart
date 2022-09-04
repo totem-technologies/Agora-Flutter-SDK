@@ -1,6 +1,7 @@
 // ignore_for_file: unnecessary_brace_in_string_interps
 
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:agora_rtc_engine_example/components/dump_video_action.dart';
 import 'package:agora_rtc_engine_example/config/agora.config.dart' as config;
 import 'package:agora_rtc_engine_example/components/example_actions_widget.dart';
 import 'package:agora_rtc_engine_example/components/log_sink.dart';
@@ -326,6 +327,7 @@ class _State extends State<SetBeautyEffect> with KeepRemoteVideoViewsMixin {
             )
           ],
         ),
+        DumpVideoAction(rtcEngine: _engine),
         if (isJoined) _buildSpatialAudioOptions(),
       ],
     );
