@@ -423,7 +423,7 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
   void initilize(SendPort sendPort) {
     _nativeIrisApiEngineBinding =
         NativeIrisApiEngineBinding(_loadAgoraFpaServiceLib());
-    _nativeIrisApiEngineBinding.enableUseJsonArray(true);
+    _nativeIrisApiEngineBinding.enableUseJsonArray(1);
     _irisApiEnginePtr = _nativeIrisApiEngineBinding.CreateIrisApiEngine();
 
     _irisEvent = IrisEvent();
@@ -534,6 +534,10 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
       }
 
       try {
+        calloc<IrisCEventHandler>()
+      ..ref.OnEvent = _irisEvent.onEventPtr
+      ..ref.OnEventEx = _irisEvent.onEventExPtr;
+      
         final irisReturnCode = _nativeIrisApiEngineBinding.CallIrisApi(
             _irisApiEnginePtr!,
             funcNamePointer,
