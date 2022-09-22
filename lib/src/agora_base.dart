@@ -560,7 +560,7 @@ enum InterfaceIdType {
   @JsonValue(7)
   agoraIidRtcConnection,
 
-  /// @nodoc
+  /// This interface class is deprecated.
   @JsonValue(8)
   agoraIidSignalingEngine,
 
@@ -579,6 +579,10 @@ enum InterfaceIdType {
   /// The MediaRecorder interface class.
   @JsonValue(12)
   agoraIidMediaRecorder,
+
+  /// @nodoc
+  @JsonValue(13)
+  agoraIidMusicContentCenter,
 }
 
 /// @nodoc
@@ -1346,18 +1350,17 @@ extension VideoStreamTypeExt on VideoStreamType {
   }
 }
 
-/// Video subscription options.
-///
+/// @nodoc
 @JsonSerializable(explicitToJson: true, includeIfNull: false)
 class VideoSubscriptionOptions {
   /// @nodoc
   const VideoSubscriptionOptions({this.type, this.encodedFrameOnly});
 
-  /// The video stream type that you want to subscribe to. The default value is videoStreamHigh, meaning the high-quality video streams. See VideoStreamType .
+  /// @nodoc
   @JsonKey(name: 'type')
   final VideoStreamType? type;
 
-  /// Whether to subscribe to encoded video frames only:true: Subscribe to encoded video frames only (structured data).false: (Default) Subscribe to raw video frames.
+  /// @nodoc
   @JsonKey(name: 'encodedFrameOnly')
   final bool? encodedFrameOnly;
 
@@ -1551,7 +1554,7 @@ enum SimulcastStreamMode {
 
   /// @nodoc
   @JsonValue(0)
-  disableSimulcastStrem,
+  disableSimulcastStream,
 
   /// @nodoc
   @JsonValue(1)
@@ -3758,15 +3761,15 @@ class LastmileProbeConfig {
       this.expectedUplinkBitrate,
       this.expectedDownlinkBitrate});
 
-  /// Sets whether to test the uplink network. Some users, for example, the audience members in a LIVE_BROADCASTING channel, do not need such a test.true: Test.false: Not test.
+  /// Sets whether to test the uplink network. Some users, for example, the audience members in a LIVE_BROADCASTING channel, do not need such a test.true: Test the uplink network.false: Do not test the uplink network.
   @JsonKey(name: 'probeUplink')
   final bool? probeUplink;
 
-  /// Sets whether to test the downlink network:true: Test.false: Not test.
+  /// Sets whether to test the downlink network:true: Test the downlink network.false: Do not test the downlink network.
   @JsonKey(name: 'probeDownlink')
   final bool? probeDownlink;
 
-  /// The expected maximum uplink bitrate (bps) of the local user. The value range is [100000, 5000000]. Agora recommends setVideoEncoderConfiguration referring to to set the value.
+  /// The expected maximum uplink bitrate (bps) of the local user. The value range is [100000, 5000000]. Agora recommends referring to setVideoEncoderConfiguration to set the value.
   @JsonKey(name: 'expectedUplinkBitrate')
   final int? expectedUplinkBitrate;
 
@@ -4435,11 +4438,11 @@ enum VideoDenoiserLevel {
   @JsonValue(0)
   videoDenoiserLevelHighQuality,
 
-  /// 1: Promotes reducing performance consumption during video noise reduction. It prioritizes reducing performance consumption over video noise reduction quality. The performance consumption is lower, and the video noise reduction speed is faster. To avoid a noticeable shadowing effect (shadows trailing behind moving objects) in the processed video, Agora recommends that you use FAST when the camera is fixed.
+  /// 1: Promotes reducing performance consumption during video noise reduction. prioritizes reducing performance consumption over video noise reduction quality. The performance consumption is lower, and the video noise reduction speed is faster. To avoid a noticeable shadowing effect (shadows trailing behind moving objects) in the processed video, Agora recommends that you use this settinging when the camera is fixed.
   @JsonValue(1)
   videoDenoiserLevelFast,
 
-  /// 2: Enhanced video noise reduction. It prioritizes video noise reduction quality over reducing performance consumption. The performance consumption is higher, the video noise reduction speed is slower, and the video noise reduction quality is better. If is not enough for your video noise reduction needs, you can use this enumerator.videoDenoiserLevelHighQuality
+  /// 2: Enhanced video noise reduction. prioritizes video noise reduction quality over reducing performance consumption. The performance consumption is higher, the video noise reduction speed is slower, and the video noise reduction quality is better. If videoDenoiserLevelHighQuality is not enough for your video noise reduction needs, you can use this enumerator.
   @JsonValue(2)
   videoDenoiserLevelStrength,
 }
@@ -4677,7 +4680,7 @@ enum VoiceBeautifierPreset {
   @JsonValue(0x01030800)
   timbreTransformationRinging,
 
-  /// A ultra-high quality voice, which makes the audio clearer and restores more details.To achieve better audio effect quality, Agora recommends that you set the profile of setAudioProfile [2/2] to audioProfileMusicHighQuality(4) or audioProfileMusicHighQualityStereo(5) and scenario to audioScenarioGameStreaming(3) before calling setVoiceBeautifierPreset .If you have an audio capturing device that can already restore audio details to a high degree, Agora recommends that you do not enable ultra-high quality; otherwise, the SDK may over-restore audio details, and you may not hear the anticipated voice effect.
+  /// A ultra-high quality voice, which makes the audio clearer and restores more details.To achieve better audio effect quality, Agora recommends that you set the profile of setAudioProfile to audioProfileMusicHighQuality(4) or audioProfileMusicHighQualityStereo(5) and scenario to audioScenarioGameStreaming(3) before calling setVoiceBeautifierPreset .If you have an audio capturing device that can already restore audio details to a high degree, Agora recommends that you do not enable ultra-high quality; otherwise, the SDK may over-restore audio details, and you may not hear the anticipated voice effect.
   @JsonValue(0x01040100)
   ultraHighQualityVoice,
 }
@@ -4696,7 +4699,7 @@ extension VoiceBeautifierPresetExt on VoiceBeautifierPreset {
 }
 
 /// Preset audio effects.
-/// To get better audio effects, Agora recommends calling setAudioProfile [1/2] and setting the profile parameter as recommended below before using the preset audio effects.
+/// To get better audio effects, Agora recommends calling setAudioProfile and setting the profile parameter as recommended below before using the preset audio effects.
 @JsonEnum(alwaysCreate: true)
 enum AudioEffectPreset {
   /// Turn off voice effects, that is, use the original voice.
@@ -5013,9 +5016,7 @@ class AudioRecordingConfiguration {
   @JsonKey(name: 'encode')
   final bool? encode;
 
-  /// Recording sample rate (Hz).
-  ///  16000(Default) 320004410048000If you set this parameter to 44100 or 48000, Agora recommends recording WAV files, or AAC files with quality to be AgoraAudioRecordingQualityMedium or AgoraAudioRecordingQualityHigh for better recording quality.
-  ///
+  /// Recording sample rate (Hz).16000(Default) 320004410048000If you set this parameter to 44100 or 48000, Agora recommends recording WAV files, or AAC files with quality set as audioRecordingQualityMedium or audioRecordingQualityHigh for better recording quality.
   @JsonKey(name: 'sampleRate')
   final int? sampleRate;
 
@@ -5815,7 +5816,7 @@ class EchoTestConfiguration {
   @JsonKey(name: 'enableVideo')
   final bool? enableVideo;
 
-  /// The token used to secure the audio and video call loop test. If you do not enable App Certificate in Agora Console, you do not need to pass a value in this parameter; if you have enabled App Certificate in Agora Console, you must pass a token in this parameter; the uid used when you generate the token must be 0xFFFFFFFF, and the channel name used must be the channel name that identifies each audio and video call loop tested. For server-side token generation, see Authenticate Your Users with Tokens.
+  /// @nodoc
   @JsonKey(name: 'token')
   final String? token;
 
@@ -5858,15 +5859,15 @@ class UserInfo {
 ///
 @JsonEnum(alwaysCreate: true)
 enum EarMonitoringFilterType {
-  /// 1: Do not add an audio filter to the in-ear monitor.
+  /// 1<<0: Do not add an audio filter to the in-ear monitor.
   @JsonValue((1 << 0))
   earMonitoringFilterNone,
 
-  /// 2: Add an audio filter to the in-ear monitor. If you implement functions such as voice beautifier and audio effect, users can hear the voice after adding these effects.
+  /// 1<<1: Add an audio filter to the in-ear monitor. If you implement functions such as voice beautifier and audio effect, users can hear the voice after adding these effects.
   @JsonValue((1 << 1))
   earMonitoringFilterBuiltInAudioFilters,
 
-  /// 4: Enable noise suppression to the in-ear monitor.
+  /// 1<<2: Enable noise suppression to the in-ear monitor.
   @JsonValue((1 << 2))
   earMonitoringFilterNoiseSuppression,
 }

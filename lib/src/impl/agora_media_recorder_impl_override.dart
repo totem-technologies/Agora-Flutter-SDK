@@ -36,7 +36,7 @@ class MediaRecorderImpl extends media_recorder_impl_binding.MediaRecorderImpl
     buffers.addAll(connection.collectBufferList());
 
     await apiCaller.callIrisEventAsync(
-        const IrisEventHandlerKey(
+        const IrisEventObserverKey(
             op: CallIrisEventOp.create,
             registerName: 'MediaRecorder_setMediaRecorderObserver',
             unregisterName: 'MediaRecorder_unsetMediaRecorderObserver'),
@@ -53,7 +53,7 @@ class MediaRecorderImpl extends media_recorder_impl_binding.MediaRecorderImpl
   Future<void> release() async {
     if (_eventHandlers.isNotEmpty) {
       await apiCaller.callIrisEventAsync(
-          const IrisEventHandlerKey(
+          const IrisEventObserverKey(
               op: CallIrisEventOp.dispose,
               registerName: 'MediaRecorder_setMediaRecorderObserver',
               unregisterName: 'MediaRecorder_unsetMediaRecorderObserver'),

@@ -1072,12 +1072,12 @@ class AudioFrameObserver extends AudioFrameObserverBase {
           onMixedAudioFrame: onMixedAudioFrame,
         );
 
-  /// Retrieves the audio frame of a specified user before mixing.
+  /// Retrieves the unmixed audio frame of a specified user.
   ///
   ///
   /// * [channelId] The channel ID.
   /// * [uid] The user ID of the specified user.
-  /// * [audioFrame] The raw audio data. See AudioFrame .
+  /// * [audioFrame] The audio frame. See AudioFrame .
   ///
   /// Returns
   /// Reserved for future use.
@@ -1199,13 +1199,13 @@ class VideoFrameObserver {
   /// Occurs each time the SDK receives a video frame captured by the local camera.
   /// After you successfully register the video frame observer, the SDK triggers this callback each time it receives a video frame. In this callback, you can get the video data captured by the local camera. You can then pre-process the data according to your scenarios.After pre-processing, you can send the processed video data back to the SDK through this callback.The video data that this callback gets has not been pre-processed, and is not watermarked, cropped, rotated or beautified.
   ///
-  /// * [videoFrame] The video frame. See VideoFrame .
+  /// * [videoFrame] The video frame.  VideoFrame
   final void Function(VideoFrame videoFrame)? onCaptureVideoFrame;
 
   /// Occurs each time the SDK receives a video frame before encoding.
   /// After you successfully register the video frame observer, the SDK triggers this callback each time it receives a video frame. In this callback, you can get the video data before encoding and then process the data according to your particular scenarios.After processing, you can send the processed video data back to the SDK in this callback.The video data that this callback gets has been preprocessed, with its content cropped and rotated, and the image enhanced.
   ///
-  /// * [videoFrame] The video frame. See VideoFrame .
+  /// * [videoFrame] The video frame.  VideoFrame
   final void Function(VideoFrame videoFrame)? onPreEncodeVideoFrame;
 
   /// @nodoc
@@ -1215,26 +1215,26 @@ class VideoFrameObserver {
   /// Gets the video data captured from the second camera before encoding.
   /// After you successfully register the video frame observer, the SDK triggers this callback each time it receives a video frame. In this callback, you can get the video data captured from the second camera before encoding and then process the data according to your particular scenarios.After processing, you can send the processed video data back to the SDK in this callback.
   ///
-  /// * [videoFrame] The video frame. See VideoFrame .
+  /// * [videoFrame] The video frame.  VideoFrame
   final void Function(VideoFrame videoFrame)?
       onSecondaryPreEncodeCameraVideoFrame;
 
   /// Occurs each time the SDK receives a video frame captured by the screen.
   /// After you successfully register the video frame observer, the SDK triggers this callback each time it receives a video frame. In this callback, you can get the video data for screen sharing. You can then pre-process the data according to your scenarios.After pre-processing, you can send the processed video data back to the SDK through this callback.This callback does not support sending processed RGBA video data back to the SDK.The video data that this callback gets has not been pre-processed, and is not watermarked, cropped, rotated or beautified.
   ///
-  /// * [videoFrame] The video frame. See VideoFrame .
+  /// * [videoFrame] The video frame.  VideoFrame
   final void Function(VideoFrame videoFrame)? onScreenCaptureVideoFrame;
 
   /// Gets the video data captured from the screen before encoding.
   /// After you successfully register the video frame observer, the SDK triggers this callback each time it receives a video frame. In this callback, you can get the video data captured from the screen before encoding and then process the data according to your particular scenarios.After processing, you can send the processed video data back to the SDK in this callback.The video data that this callback gets has been preprocessed, with its content cropped and rotated, and the image enhanced.This callback does not support sending processed RGBA video data back to the SDK.
   ///
-  /// * [videoFrame] The video frame. See VideoFrame .
+  /// * [videoFrame] The video frame.  VideoFrame
   final void Function(VideoFrame videoFrame)? onPreEncodeScreenVideoFrame;
 
   /// Gets the video data of the media player.
   /// After you successfully register the video frame observer and calling the createMediaPlayer method, the SDK triggers this callback each time when it receives a video frame. In this callback, you can get the video data of the media player. You can then process the data according to your particular scenarios.After pre-processing, you can send the processed video data back to the SDK by this callback.
   ///
-  /// * [videoFrame] The video frame. See VideoFrame .
+  /// * [videoFrame] The video frame.  VideoFrame
   /// * [mediaPlayerId] The ID of the media player.
   final void Function(VideoFrame videoFrame, int mediaPlayerId)?
       onMediaPlayerVideoFrame;
@@ -1246,14 +1246,14 @@ class VideoFrameObserver {
   /// Gets the video data captured from the second screen before encoding.
   /// After you successfully register the video frame observer, the SDK triggers this callback each time it receives a video frame. In this callback, you can get the video data captured from the second screen before encoding and then process the data according to your particular scenarios.After processing, you can send the processed video data back to the SDK in this callback.
   ///
-  /// * [videoFrame] The video frame. See VideoFrame .
+  /// * [videoFrame] The video frame.  VideoFrame
   final void Function(VideoFrame videoFrame)?
       onSecondaryPreEncodeScreenVideoFrame;
 
   /// Occurs each time the SDK receives a video frame sent by the remote user.
   /// After you successfully register the video frame observer, the SDK triggers this callback each time it receives a video frame. In this callback, you can get the video data before encoding. You can then process the data according to your particular scenarios.This function only applies to the scenarios where the video processing mode is processModeReadOnly.
   ///
-  /// * [videoFrame] The video frame. See VideoFrame .
+  /// * [videoFrame] The video frame.  VideoFrame
   /// * [remoteUid] The ID of the remote user who sends the current video frame.
   /// * [channelId] The channel ID.
   final void Function(String channelId, int remoteUid, VideoFrame videoFrame)?
@@ -1447,7 +1447,7 @@ class MediaRecorderConfiguration {
       this.maxDurationMs,
       this.recorderInfoUpdateInterval});
 
-  /// The absolute path (including the filename extensions) of the recording file. For example:Windows: C:\Users\<user_name>\AppData\Local\Agora\<process_name>\example.mp4iOS: /AppSandbox/Library/Caches/example.mp4macOS: ～/Library/Logs/example.mp4Android: /storage/emulated/0/Android/data/<package name>/files/agorasdk.mp4Ensure that the directory for the log files exists and is writable.
+  /// The absolute path (including the filename extensions) of the recording file. For example:Windows: C:\Users\<user_name>\AppData\Local\Agora\<process_name>\example.mp4iOS: /App Sandbox/Library/Caches/example.mp4macOS: /Library/Logs/example.mp4Android: /storage/emulated/0/Android/data/<package name>/files/example.mp4Ensure that the directory for the log files exists and is writable.
   @JsonKey(name: 'storagePath')
   final String? storagePath;
 

@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #import "VideoViewController.h"
 #import "TextureRenderer.h"
-#import <AgoraRtcWrapper/iris_rtc_cxx_api.h>
+#import <AgoraRtcWrapper/iris_cxx_api.h>
 #import <AgoraRtcWrapper/iris_video_processor_cxx.h>
 
 @interface VideoViewController ()

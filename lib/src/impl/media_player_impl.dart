@@ -98,12 +98,29 @@ class MediaPlayerImpl extends agora_media_player_impl_binding.MediaPlayerImpl
   }
 
   @override
-  void registerPlayerSourceObserver(MediaPlayerSourceObserver observer) {
+  void registerPlayerSourceObserver(MediaPlayerSourceObserver observer) async {
+    final param = createParams({});
+    await apiCaller.callIrisEventAsync(
+        const IrisEventObserverKey(
+            op: CallIrisEventOp.create,
+            registerName: 'MediaPlayer_registerPlayerSourceObserver',
+            unregisterName: 'MediaPlayer_unregisterPlayerSourceObserver'),
+        jsonEncode(param));
+
     _mediaPlayerSourceObservers.add(observer);
   }
 
   @override
-  void unregisterPlayerSourceObserver(MediaPlayerSourceObserver observer) {
+  void unregisterPlayerSourceObserver(
+      MediaPlayerSourceObserver observer) async {
+    final param = createParams({});
+    await apiCaller.callIrisEventAsync(
+        const IrisEventObserverKey(
+            op: CallIrisEventOp.dispose,
+            registerName: 'MediaPlayer_registerPlayerSourceObserver',
+            unregisterName: 'MediaPlayer_unregisterPlayerSourceObserver'),
+        jsonEncode(param));
+
     _mediaPlayerSourceObservers.remove(observer);
   }
 

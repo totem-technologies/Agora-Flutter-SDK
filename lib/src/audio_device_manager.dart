@@ -86,7 +86,10 @@ abstract class AudioDeviceManager {
   /// An AudioDeviceInfo object, which includes the device ID and device name.
   Future<AudioDeviceInfo> getRecordingDeviceInfo();
 
-  /// @nodoc
+  /// Sets the volume of the audio recording device.
+  ///
+  ///
+  /// * [volume]  The volume of the audio recording device. The value range is [0,255].
   Future<void> setRecordingDeviceVolume(int volume);
 
   /// @nodoc
@@ -114,7 +117,7 @@ abstract class AudioDeviceManager {
   /// This method stops the audio playback device test. You must call this method to stop the test after calling the startPlaybackDeviceTest method.Ensure that you call this method before joining a channel.
   Future<void> stopPlaybackDeviceTest();
 
-  /// Starts the audio capture device test.
+  /// Starts the audio recording device test.
   /// This method tests whether the audio capture device works properly. After calling this method, the SDK triggers the onAudioVolumeIndication callback at the time interval set in this method, which reports uid = 0 and the volume information of the capturing device.Ensure that you call this method before joining a channel.
   ///
   /// * [indicationInterval] The time interval (ms) at which the SDK triggers the onAudioVolumeIndication callback. Agora recommends a setting greater than 200 ms. This value must not be less than 10 ms; otherwise, you can not receive the onAudioVolumeIndication callback.

@@ -50,7 +50,7 @@ RtcEngineEx createAgoraRtcEngineEx() {
   return impl.RtcEngineImpl.create();
 }
 
-/// Gets an MediaPlayerCacheManager instance.
+/// Gets one MediaPlayerCacheManager instance.
 /// Make sure the RtcEngine is initialized before you call this method.
 ///
 /// Returns
