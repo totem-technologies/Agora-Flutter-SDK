@@ -12,73 +12,132 @@ import 'package:agora_rtc_engine/src/binding/agora_media_player_event_impl.dart'
     as media_player_event_binding;
 import 'package:agora_rtc_engine/src/binding/agora_media_player_impl.dart'
     as agora_media_player_impl_binding;
-import 'package:agora_rtc_engine/src/binding/agora_media_player_source_event_impl.dart';
+import 'package:agora_rtc_engine/src/binding/agora_media_player_source_event_impl.dart'
+    as media_player_source_event_binding;
 import 'package:agora_rtc_engine/src/impl/agora_rtc_engine_impl.dart'
     as rtc_engine_impl;
 import 'package:agora_rtc_engine/src/impl/disposable_object.dart';
+import 'package:agora_rtc_engine/src/impl/event_loop.dart';
 import 'package:agora_rtc_engine/src/render/media_player_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:iris_event/iris_event.dart';
 
 import 'api_caller.dart';
 
+class MediaPlayerEventHandlerKey extends EventLoopEventHandlerKey {
+  const MediaPlayerEventHandlerKey(Type type, this.mediaPlayerId) : super(type);
+
+  final int mediaPlayerId;
+
+  @override
+  bool operator ==(Object other) {
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    return other is MediaPlayerEventHandlerKey &&
+        other.type == type &&
+        other.mediaPlayerId == mediaPlayerId;
+  }
+
+  @override
+  int get hashCode => hashValues(type, mediaPlayerId);
+}
+
 class MediaPlayerAudioFrameObserverWrapper
     extends media_player_event_binding.MediaPlayerAudioFrameObserverWrapper {
-  const MediaPlayerAudioFrameObserverWrapper(
+  const MediaPlayerAudioFrameObserverWrapper(this.mediaPlayerId,
       MediaPlayerAudioFrameObserver mediaPlayerAudioFrameObserver)
       : super(mediaPlayerAudioFrameObserver);
 
+  final int mediaPlayerId;
+
   @override
-  void onEvent(String event, String data, List<Uint8List> buffers) {
-    if (!event.startsWith('MediaPlayer_')) return;
-    final newEvent = 'MediaPlayer${event.replaceFirst('MediaPlayer_', '')}';
-    mediaPlayerAudioFrameObserver.process(newEvent, data, buffers);
+  bool handleEvent(
+      String eventName, String eventData, List<Uint8List> buffers) {
+    final jsonMap = Map<String, dynamic>.from(jsonDecode(eventData));
+    if (jsonMap.containsKey('playerId') &&
+        jsonMap['playerId'] == mediaPlayerId) {
+      return super.handleEvent(eventName, eventData, buffers);
+    }
+
+    return false;
   }
 }
 
 class MediaPlayerVideoFrameObserverWrapper
     extends media_player_event_binding.MediaPlayerVideoFrameObserverWrapper {
-  MediaPlayerVideoFrameObserverWrapper(
+  MediaPlayerVideoFrameObserverWrapper(this.mediaPlayerId,
       MediaPlayerVideoFrameObserver mediaPlayerVideoFrameObserver)
       : super(mediaPlayerVideoFrameObserver);
+
+  final int mediaPlayerId;
+
   @override
-  void onEvent(String event, String data, List<Uint8List> buffers) {
-    if (!event.startsWith('MediaPlayer_')) return;
-    final newEvent = 'MediaPlayer${event.replaceFirst('MediaPlayer_', '')}';
-    mediaPlayerVideoFrameObserver.process(newEvent, data, buffers);
+  bool handleEvent(
+      String eventName, String eventData, List<Uint8List> buffers) {
+    final jsonMap = Map<String, dynamic>.from(jsonDecode(eventData));
+    if (jsonMap.containsKey('playerId') &&
+        jsonMap['playerId'] == mediaPlayerId) {
+      return super.handleEvent(eventName, eventData, buffers);
+    }
+
+    return false;
+  }
+}
+
+class MediaPlayerSourceObserverWrapper
+    extends media_player_source_event_binding.MediaPlayerSourceObserverWrapper {
+  MediaPlayerSourceObserverWrapper(
+    this.mediaPlayerId,
+    MediaPlayerSourceObserver mediaPlayerSourceObserver,
+  ) : super(mediaPlayerSourceObserver);
+
+  final int mediaPlayerId;
+
+  @override
+  bool handleEvent(
+      String eventName, String eventData, List<Uint8List> buffers) {
+    final jsonMap = Map<String, dynamic>.from(jsonDecode(eventData));
+    if (jsonMap.containsKey('playerId') &&
+        jsonMap['playerId'] == mediaPlayerId) {
+      return super.handleEvent(eventName, eventData, buffers);
+    }
+
+    return false;
   }
 }
 
 class AudioSpectrumObserverWrapper
     extends media_base_event_binding.AudioSpectrumObserverWrapper {
   const AudioSpectrumObserverWrapper(
-      AudioSpectrumObserver audioSpectrumObserver)
+      this.mediaPlayerId, AudioSpectrumObserver audioSpectrumObserver)
       : super(audioSpectrumObserver);
 
+  final int mediaPlayerId;
+
   @override
-  void onEvent(String event, String data, List<Uint8List> buffers) {
-    if (!event.startsWith('MediaPlayer_')) return;
-    audioSpectrumObserver.process(
-        event.replaceFirst('MediaPlayer_', ''), data, buffers);
+  bool handleEvent(
+      String eventName, String eventData, List<Uint8List> buffers) {
+    final jsonMap = Map<String, dynamic>.from(jsonDecode(eventData));
+    if (jsonMap.containsKey('playerId') &&
+        jsonMap['playerId'] == mediaPlayerId) {
+      return super.handleEvent(eventName, eventData, buffers);
+    }
+    return false;
   }
 }
 
 /// Implementation of [MediaPlayerController]
 class MediaPlayerImpl extends agora_media_player_impl_binding.MediaPlayerImpl
-    implements MediaPlayer, IrisEventHandler {
-  MediaPlayerImpl._(this._mediaPlayerId) {
-    apiCaller.addEventHandler(this);
-  }
+    implements MediaPlayer {
+  MediaPlayerImpl._(this._mediaPlayerId, this._eventLoop);
 
   final int _mediaPlayerId;
 
-  final Set<MediaPlayerSourceObserver> _mediaPlayerSourceObservers = {};
-
-  final Set<IrisEventHandler> _eventHandlers = {};
+  final EventLoop _eventLoop;
 
   /// Create the [MediaPlayerImpl]
-  factory MediaPlayerImpl.create(int mediaPlayerId) {
-    final instance = MediaPlayerImpl._(mediaPlayerId);
+  factory MediaPlayerImpl.create(int mediaPlayerId, EventLoop eventLoop) {
+    final instance = MediaPlayerImpl._(mediaPlayerId, eventLoop);
 
     return instance;
   }
@@ -107,7 +166,10 @@ class MediaPlayerImpl extends agora_media_player_impl_binding.MediaPlayerImpl
             unregisterName: 'MediaPlayer_unregisterPlayerSourceObserver'),
         jsonEncode(param));
 
-    _mediaPlayerSourceObservers.add(observer);
+    _eventLoop.addEventHandler(
+      MediaPlayerEventHandlerKey(MediaPlayerImpl, getMediaPlayerId()),
+      MediaPlayerSourceObserverWrapper(getMediaPlayerId(), observer),
+    );
   }
 
   @override
@@ -121,24 +183,16 @@ class MediaPlayerImpl extends agora_media_player_impl_binding.MediaPlayerImpl
             unregisterName: 'MediaPlayer_unregisterPlayerSourceObserver'),
         jsonEncode(param));
 
-    _mediaPlayerSourceObservers.remove(observer);
-  }
-
-  @override
-  void onEvent(String event, String data, List<Uint8List> buffers) {
-    final jsonMap = Map<String, dynamic>.from(jsonDecode(data));
-    if (jsonMap.containsKey('playerId') &&
-        jsonMap['playerId'] == getMediaPlayerId()) {
-      for (final eh in _mediaPlayerSourceObservers) {
-        eh.process(event, data, buffers);
-      }
-    }
+    _eventLoop.removeEventHandler(
+      MediaPlayerEventHandlerKey(MediaPlayerImpl, getMediaPlayerId()),
+      MediaPlayerSourceObserverWrapper(getMediaPlayerId(), observer),
+    );
   }
 
   void destroy() {
-    apiCaller.removeEventHandler(this);
-
-    _mediaPlayerSourceObservers.clear();
+    _eventLoop.removeEventHandlers(
+      MediaPlayerEventHandlerKey(MediaPlayerImpl, getMediaPlayerId()),
+    );
   }
 
   @override
@@ -186,7 +240,10 @@ class MediaPlayerImpl extends agora_media_player_impl_binding.MediaPlayerImpl
             unregisterName: 'MediaPlayer_unregisterAudioFrameObserver'),
         jsonEncode(param));
 
-    _eventHandlers.add(MediaPlayerAudioFrameObserverWrapper(observer));
+    _eventLoop.addEventHandler(
+      MediaPlayerEventHandlerKey(MediaPlayerImpl, getMediaPlayerId()),
+      MediaPlayerAudioFrameObserverWrapper(getMediaPlayerId(), observer),
+    );
   }
 
   @override
@@ -200,7 +257,10 @@ class MediaPlayerImpl extends agora_media_player_impl_binding.MediaPlayerImpl
             unregisterName: 'MediaPlayer_unregisterAudioFrameObserver'),
         jsonEncode(param));
 
-    _eventHandlers.remove(MediaPlayerAudioFrameObserverWrapper(observer));
+    _eventLoop.removeEventHandler(
+      MediaPlayerEventHandlerKey(MediaPlayerImpl, getMediaPlayerId()),
+      MediaPlayerAudioFrameObserverWrapper(getMediaPlayerId(), observer),
+    );
   }
 
   @override
@@ -214,7 +274,10 @@ class MediaPlayerImpl extends agora_media_player_impl_binding.MediaPlayerImpl
             unregisterName: 'MediaPlayer_unregisterVideoFrameObserver'),
         jsonEncode(param));
 
-    _eventHandlers.add(MediaPlayerVideoFrameObserverWrapper(observer));
+    _eventLoop.addEventHandler(
+      MediaPlayerEventHandlerKey(MediaPlayerImpl, getMediaPlayerId()),
+      MediaPlayerVideoFrameObserverWrapper(getMediaPlayerId(), observer),
+    );
   }
 
   @override
@@ -228,7 +291,10 @@ class MediaPlayerImpl extends agora_media_player_impl_binding.MediaPlayerImpl
             unregisterName: 'MediaPlayer_unregisterVideoFrameObserver'),
         jsonEncode(param));
 
-    _eventHandlers.remove(MediaPlayerVideoFrameObserverWrapper(observer));
+    _eventLoop.removeEventHandler(
+      MediaPlayerEventHandlerKey(MediaPlayerImpl, getMediaPlayerId()),
+      MediaPlayerVideoFrameObserverWrapper(getMediaPlayerId(), observer),
+    );
   }
 
   @override
@@ -245,7 +311,10 @@ class MediaPlayerImpl extends agora_media_player_impl_binding.MediaPlayerImpl
                 'MediaPlayer_unregisterMediaPlayerAudioSpectrumObserver'),
         jsonEncode(param));
 
-    _eventHandlers.add(AudioSpectrumObserverWrapper(observer));
+    _eventLoop.addEventHandler(
+      MediaPlayerEventHandlerKey(MediaPlayerImpl, getMediaPlayerId()),
+      AudioSpectrumObserverWrapper(getMediaPlayerId(), observer),
+    );
   }
 
   @override
@@ -261,18 +330,20 @@ class MediaPlayerImpl extends agora_media_player_impl_binding.MediaPlayerImpl
                 'MediaPlayer_unregisterMediaPlayerAudioSpectrumObserver'),
         jsonEncode(param));
 
-    _eventHandlers.remove(AudioSpectrumObserverWrapper(observer));
+    _eventLoop.removeEventHandler(
+      MediaPlayerEventHandlerKey(MediaPlayerImpl, getMediaPlayerId()),
+      AudioSpectrumObserverWrapper(getMediaPlayerId(), observer),
+    );
   }
 }
 
 class MediaPlayerCacheManagerImpl extends agora_media_player_impl_binding
     .MediaPlayerCacheManagerImpl implements AsyncDisposableObject {
-  MediaPlayerCacheManagerImpl._(RtcEngine rtcEngine) {
-    rtcEngine.addToPool(MediaPlayerCacheManagerImpl, this);
-  }
+  MediaPlayerCacheManagerImpl._();
+
   factory MediaPlayerCacheManagerImpl.create(RtcEngine rtcEngine) {
-    return rtcEngine.getObjectFromPool(MediaPlayerCacheManagerImpl) ??
-        MediaPlayerCacheManagerImpl._(rtcEngine);
+    return rtcEngine.objectPool.putIfAbsent(
+        MediaPlayerCacheManagerImpl, () => MediaPlayerCacheManagerImpl._());
   }
 
   @override

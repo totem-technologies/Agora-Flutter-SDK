@@ -16,8 +16,6 @@ import 'package:agora_rtc_engine/src/binding/agora_rtc_engine_ex_impl.dart'
     as rtc_engine_ex_binding;
 import 'package:agora_rtc_engine/src/binding/agora_rtc_engine_impl.dart'
     as rtc_engine_binding;
-import 'package:agora_rtc_engine/src/binding/agora_media_base_event_impl.dart'
-    as media_base_event_binding;
 
 import 'package:agora_rtc_engine/src/impl/agora_media_recorder_impl_override.dart'
     as media_recorder_impl;
@@ -32,7 +30,8 @@ import 'package:agora_rtc_engine/src/impl/media_player_impl.dart'
 import 'package:agora_rtc_engine/src/impl/audio_device_manager_impl.dart'
     as audio_device_manager_impl;
 import 'package:agora_rtc_engine/src/binding/impl_forward_export.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform;
+import 'package:flutter/foundation.dart'
+    show ValueGetter, defaultTargetPlatform;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter/widgets.dart'
     show
@@ -43,8 +42,6 @@ import 'package:flutter/widgets.dart'
         TargetPlatform,
         debugPrint;
 
-import 'package:iris_event/iris_event.dart';
-
 import 'global_video_view_controller.dart';
 import 'package:meta/meta.dart';
 
@@ -52,27 +49,32 @@ import 'package:meta/meta.dart';
 
 class ObjectPool {
   ObjectPool();
-  final Map<Type, AsyncDisposableObject> pool = {};
+  final Map<Type, AsyncDisposableObject> _pool = {};
 
   void put(Type objectType, AsyncDisposableObject obj) {
-    pool.putIfAbsent(objectType, () => obj);
+    _pool.putIfAbsent(objectType, () => obj);
+  }
+
+  T putIfAbsent<T>(
+      Type objectType, ValueGetter<AsyncDisposableObject> ifAbsent) {
+    return _pool.putIfAbsent(objectType, ifAbsent) as T;
   }
 
   void remove(Type objectType) {
-    pool.remove(objectType);
+    _pool.remove(objectType);
   }
 
   AsyncDisposableObject? get(Type objectType) {
-    return pool[objectType];
+    return _pool[objectType];
   }
 
   Future<void> clear() async {
-    final values = pool.values;
+    final values = _pool.values;
     for (final v in values) {
       await v.disposeAsync();
     }
 
-    pool.clear();
+    _pool.clear();
   }
 }
 
@@ -80,17 +82,7 @@ extension RtcEngineExt on RtcEngine {
   GlobalVideoViewController get globalVideoViewController =>
       (this as RtcEngineImpl)._globalVideoViewController;
 
-  void addToPool<V>(Type objectType, AsyncDisposableObject obj) {
-    (this as RtcEngineImpl)._objectPool.put(objectType, obj);
-  }
-
-  void removeFromPool(Type objectType) {
-    (this as RtcEngineImpl)._objectPool.remove(objectType);
-  }
-
-  V? getObjectFromPool<V>(Type objectType) {
-    return (this as RtcEngineImpl)._objectPool.get(objectType) as V?;
-  }
+  ObjectPool get objectPool => (this as RtcEngineImpl)._objectPool;
 }
 
 extension ThumbImageBufferExt on ThumbImageBuffer {
@@ -200,11 +192,6 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
   RtcEngineImpl._();
 
   static RtcEngineImpl? _instance;
-  // final Set<RtcEngineEventHandler> _rtcEngineEventHandlers = {};
-  // final Set<MetadataObserver> _metadataObservers = {};
-  // DirectCdnStreamingEventHandler? _directCdnStreamingEventHandler;
-
-  // final List<IrisEventHandler> _eventHandlers = [];
 
   final GlobalVideoViewController _globalVideoViewController =
       GlobalVideoViewController();
@@ -212,8 +199,6 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
   final ObjectPool _objectPool = ObjectPool();
 
   final EventLoop _eventLoop = EventLoop();
-
-  int _mediaPlayerCount = 0;
 
   _Lifecycle? _lifecycle;
 
@@ -284,19 +269,7 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
 
     _eventLoop.terminate();
 
-    // if (_rtcEngineEventHandlers.isNotEmpty) {
-    //   _rtcEngineEventHandlers.clear();
-    //   apiCaller.removeEventHandler(this);
-    // }
-
-    // _eventHandlers.clear();
-    // _metadataObservers.clear();
-    // _directCdnStreamingEventHandler = null;
-    // _mediaPlayerCount = 0;
-
     await _objectPool.clear();
-
-    // await apiCaller.disposeAllEventHandlersAsync();
 
     await _globalVideoViewController
         .detachVideoFrameBufferManager(apiCaller.getIrisApiEngineIntPtr());
@@ -307,44 +280,9 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
     _instance = null;
   }
 
-  // @override
-  // void onEvent(String event, String data, List<Uint8List> buffers) {
-  //   for (final e in _eventHandlers) {
-  //     e.onEvent(event, data, buffers);
-  //   }
-
-  //   for (final eh in _rtcEngineEventHandlers) {
-  //     if (!eh.eventIntercept(event, data, buffers)) {
-  //       eh.process(event, data, buffers);
-  //     }
-  //   }
-
-  //   for (final observer in _metadataObservers) {
-  //     if (!observer.eventIntercept(event, data, buffers)) {
-  //       observer.process(event, data, buffers);
-  //     }
-  //   }
-
-  //   _directCdnStreamingEventHandler?.process(event, data, buffers);
-  // }
-
   @override
   void registerEventHandler(
       covariant RtcEngineEventHandler eventHandler) async {
-    // if (_rtcEngineEventHandlers.isEmpty) {
-    //   // await apiCaller.setupIrisRtcEngineEventHandlerAsync();
-
-    //   final param = createParams({});
-    //   await apiCaller.callIrisEventAsync(
-    //       const IrisEventObserverKey(
-    //           op: CallIrisEventOp.create,
-    //           registerName: 'RtcEngine_registerEventHandler',
-    //           unregisterName: 'RtcEngine_unregisterEventHandler'),
-    //       jsonEncode(param));
-    //   apiCaller.addEventHandler(_instance!);
-    // }
-    // _rtcEngineEventHandlers.add(eventHandler);
-
     final param = createParams({});
     await apiCaller.callIrisEventAsync(
         const IrisEventObserverKey(
@@ -354,7 +292,7 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
         jsonEncode(param));
 
     _eventLoop.addEventHandler(
-      RtcEngineImpl,
+      const EventLoopEventHandlerKey(RtcEngineImpl),
       RtcEngineEventHandlerWrapper(eventHandler),
     );
   }
@@ -362,21 +300,8 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
   @override
   void unregisterEventHandler(
       covariant RtcEngineEventHandler eventHandler) async {
-    // _rtcEngineEventHandlers.remove(eventHandler);
-    // if (_rtcEngineEventHandlers.isEmpty) {
-    //   // await apiCaller.disposeIrisRtcEngineEventHandlerAsync();
-
-    //   final param = createParams({});
-    //   await apiCaller.callIrisEventAsync(
-    //       const IrisEventObserverKey(
-    //           op: CallIrisEventOp.dispose,
-    //           registerName: 'RtcEngine_registerEventHandler',
-    //           unregisterName: 'RtcEngine_unregisterEventHandler'),
-    //       jsonEncode(param));
-    // }
-
     _eventLoop.removeEventHandler(
-      RtcEngineImpl,
+      const EventLoopEventHandlerKey(RtcEngineImpl),
       RtcEngineEventHandlerWrapper(eventHandler),
     );
 
@@ -474,23 +399,13 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
     final rm = callApiResult.data;
     final result = rm['result'];
 
-    // if (_mediaPlayerCount == 0) {
-    //   await apiCaller.setupIrisMediaPlayerEventHandlerIfNeedAsync();
-    // }
-
     final MediaPlayer mediaPlayer =
-        media_player_impl.MediaPlayerImpl.create(result as int);
-    ++_mediaPlayerCount;
+        media_player_impl.MediaPlayerImpl.create(result as int, _eventLoop);
     return mediaPlayer;
   }
 
   @override
   Future<void> destroyMediaPlayer(covariant MediaPlayer mediaPlayer) async {
-    --_mediaPlayerCount;
-    // if (_mediaPlayerCount == 0) {
-    //   await apiCaller.disposeIrisMediaPlayerEventHandlerIfNeedAsync();
-    // }
-
     const apiType = 'RtcEngine_destroyMediaPlayer';
     final playerId = mediaPlayer.getMediaPlayerId();
     final param = createParams({'playerId': playerId});
@@ -658,20 +573,7 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
   @override
   void registerMediaMetadataObserver(
       {required MetadataObserver observer, required MetadataType type}) async {
-    // const apiType = 'RtcEngine_registerMediaMetadataObserver';
     final param = createParams({'type': type.value()});
-    // final callApiResult =
-    //     await apiCaller.callIrisApi(apiType, jsonEncode(param));
-    // if (callApiResult.irisReturnCode < 0) {
-    //   throw AgoraRtcException(code: callApiResult.irisReturnCode);
-    // }
-    // final rm = callApiResult.data;
-    // final result = rm['result'];
-    // if (result < 0) {
-    //   throw AgoraRtcException(code: result);
-    // }
-
-    // final param = createParams({});
     await apiCaller.callIrisEventAsync(
         const IrisEventObserverKey(
             op: CallIrisEventOp.create,
@@ -679,10 +581,8 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
             unregisterName: 'RtcEngine_unregisterMediaMetadataObserver'),
         jsonEncode(param));
 
-    // _metadataObservers.add(observer);
-
     _eventLoop.addEventHandler(
-      RtcEngineImpl,
+      const EventLoopEventHandlerKey(RtcEngineImpl),
       MetadataObserverWrapper(observer),
     );
   }
@@ -690,14 +590,7 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
   @override
   void unregisterMediaMetadataObserver(
       {required MetadataObserver observer, required MetadataType type}) async {
-    // const apiType = 'RtcEngine_unregisterMediaMetadataObserver';
     final param = createParams({'type': type.value()});
-
-    // final callApiResult =
-    //     await apiCaller.callIrisApi(apiType, jsonEncode(param));
-    // if (callApiResult.irisReturnCode < 0) {
-    //   throw AgoraRtcException(code: callApiResult.irisReturnCode);
-    // }
 
     await apiCaller.callIrisEventAsync(
         const IrisEventObserverKey(
@@ -706,10 +599,8 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
             unregisterName: 'RtcEngine_unregisterMediaMetadataObserver'),
         jsonEncode(param));
 
-    // _metadataObservers.remove(observer);
-
     _eventLoop.removeEventHandler(
-      RtcEngineImpl,
+      const EventLoopEventHandlerKey(RtcEngineImpl),
       MetadataObserverWrapper(observer),
     );
   }
@@ -719,8 +610,6 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
       {required DirectCdnStreamingEventHandler eventHandler,
       required String publishUrl,
       required DirectCdnStreamingMediaOptions options}) async {
-    // _directCdnStreamingEventHandler = eventHandler;
-
     const apiType = 'RtcEngine_startDirectCdnStreaming';
     final param =
         createParams({'publishUrl': publishUrl, 'options': options.toJson()});
@@ -737,14 +626,16 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
     }
 
     _eventLoop.addEventHandler(
-      RtcEngineImpl,
+      const EventLoopEventHandlerKey(RtcEngineImpl),
       DirectCdnStreamingEventHandlerWrapper(eventHandler),
     );
   }
 
   @override
   Future<void> stopDirectCdnStreaming() async {
-    _eventLoop.removeEventHandlers(RtcEngineImpl);
+    _eventLoop.removeEventHandlers(
+      const EventLoopEventHandlerKey(RtcEngineImpl),
+    );
     await super.stopDirectCdnStreaming();
   }
 
@@ -760,20 +651,20 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
 
   @override
   MediaEngine getMediaEngine() {
-    return getObjectFromPool(MediaEngineImpl) ??
-        media_engine_impl.MediaEngineImpl.create(this);
+    return _objectPool.putIfAbsent(MediaEngineImpl,
+        () => media_engine_impl.MediaEngineImpl.create(_eventLoop));
   }
 
   @override
   MediaRecorder getMediaRecorder() {
-    return getObjectFromPool(MediaRecorderImpl) ??
-        media_recorder_impl.MediaRecorderImpl.create(this);
+    return _objectPool.putIfAbsent(MediaRecorderImpl,
+        () => media_recorder_impl.MediaRecorderImpl.create(_eventLoop));
   }
 
   @override
   LocalSpatialAudioEngine getLocalSpatialAudioEngine() {
-    return getObjectFromPool(LocalSpatialAudioEngineImpl) ??
-        agora_spatial_audio_impl.LocalSpatialAudioEngineImpl.create(this);
+    return _objectPool.putIfAbsent(LocalSpatialAudioEngineImpl,
+        () => agora_spatial_audio_impl.LocalSpatialAudioEngineImpl.create());
   }
 
   @override
@@ -1053,7 +944,7 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
         jsonEncode(param));
 
     _eventLoop.addEventHandler(
-      RtcEngineImpl,
+      const EventLoopEventHandlerKey(RtcEngineImpl),
       AudioEncodedFrameObserverWrapper(observer),
     );
   }
@@ -1069,10 +960,8 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
             unregisterName: 'RtcEngine_unregisterAudioEncodedFrameObserver'),
         jsonEncode(param));
 
-    // _eventHandlers.remove(AudioEncodedFrameObserverWrapper(observer));
-
     _eventLoop.removeEventHandler(
-      RtcEngineImpl,
+      const EventLoopEventHandlerKey(RtcEngineImpl),
       AudioEncodedFrameObserverWrapper(observer),
     );
   }
@@ -1087,10 +976,8 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
             unregisterName: 'RtcEngine_unregisterAudioSpectrumObserver'),
         jsonEncode(param));
 
-    // _eventHandlers.add(AudioSpectrumObserverWrapper(observer));
-
     _eventLoop.addEventHandler(
-      RtcEngineImpl,
+      const EventLoopEventHandlerKey(RtcEngineImpl),
       AudioSpectrumObserverWrapper(observer),
     );
   }
@@ -1105,10 +992,8 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
             unregisterName: 'RtcEngine_unregisterAudioSpectrumObserver'),
         jsonEncode(param));
 
-    // _eventHandlers.remove(AudioSpectrumObserverWrapper(observer));
-
     _eventLoop.removeEventHandler(
-      RtcEngineImpl,
+      const EventLoopEventHandlerKey(RtcEngineImpl),
       AudioSpectrumObserverWrapper(observer),
     );
   }

@@ -1,43 +1,67 @@
 import 'package:agora_rtc_engine/src/binding_forward_export.dart';
 import 'package:agora_rtc_engine/src/binding/impl_forward_export.dart';
 import 'package:iris_event/iris_event.dart';
+import 'package:agora_rtc_engine/src/impl/event_loop.dart';
 
 // ignore_for_file: public_member_api_docs, unused_local_variable
 
-extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
-  void process(String event, String data, List<Uint8List> buffers) {
-    final jsonMap = jsonDecode(data);
-    switch (event) {
-      case 'RtcEngineEventHandler_onJoinChannelSuccessEx':
-        if (onJoinChannelSuccess == null) break;
+class RtcEngineEventHandlerWrapper implements EventLoopEventHandler {
+  const RtcEngineEventHandlerWrapper(this.rtcEngineEventHandler);
+  final RtcEngineEventHandler rtcEngineEventHandler;
+  @override
+  bool operator ==(Object other) {
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    return other is RtcEngineEventHandlerWrapper &&
+        other.rtcEngineEventHandler == rtcEngineEventHandler;
+  }
+
+  @override
+  int get hashCode => rtcEngineEventHandler.hashCode;
+  @override
+  bool handleEventInternal(
+      String eventName, String eventData, List<Uint8List> buffers) {
+    switch (eventName) {
+      case 'onJoinChannelSuccessEx':
+        if (rtcEngineEventHandler.onJoinChannelSuccess == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnJoinChannelSuccessJson paramJson =
             RtcEngineEventHandlerOnJoinChannelSuccessJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         int? elapsed = paramJson.elapsed;
         if (connection == null || elapsed == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onJoinChannelSuccess!(connection, elapsed);
-        break;
+        rtcEngineEventHandler.onJoinChannelSuccess!(connection, elapsed);
+        return true;
 
-      case 'RtcEngineEventHandler_onRejoinChannelSuccessEx':
-        if (onRejoinChannelSuccess == null) break;
+      case 'onRejoinChannelSuccessEx':
+        if (rtcEngineEventHandler.onRejoinChannelSuccess == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRejoinChannelSuccessJson paramJson =
             RtcEngineEventHandlerOnRejoinChannelSuccessJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         int? elapsed = paramJson.elapsed;
         if (connection == null || elapsed == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onRejoinChannelSuccess!(connection, elapsed);
-        break;
+        rtcEngineEventHandler.onRejoinChannelSuccess!(connection, elapsed);
+        return true;
 
-      case 'RtcEngineEventHandler_onProxyConnected':
-        if (onProxyConnected == null) break;
+      case 'onProxyConnected':
+        if (rtcEngineEventHandler.onProxyConnected == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnProxyConnectedJson paramJson =
             RtcEngineEventHandlerOnProxyConnectedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -51,26 +75,33 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             proxyType == null ||
             localProxyIp == null ||
             elapsed == null) {
-          break;
+          return true;
         }
-        onProxyConnected!(channel, uid, proxyType, localProxyIp, elapsed);
-        break;
+        rtcEngineEventHandler.onProxyConnected!(
+            channel, uid, proxyType, localProxyIp, elapsed);
+        return true;
 
-      case 'RtcEngineEventHandler_onError':
-        if (onError == null) break;
+      case 'onError':
+        if (rtcEngineEventHandler.onError == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnErrorJson paramJson =
             RtcEngineEventHandlerOnErrorJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         ErrorCodeType? err = paramJson.err;
         String? msg = paramJson.msg;
         if (err == null || msg == null) {
-          break;
+          return true;
         }
-        onError!(err, msg);
-        break;
+        rtcEngineEventHandler.onError!(err, msg);
+        return true;
 
-      case 'RtcEngineEventHandler_onAudioQualityEx':
-        if (onAudioQuality == null) break;
+      case 'onAudioQualityEx':
+        if (rtcEngineEventHandler.onAudioQuality == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnAudioQualityJson paramJson =
             RtcEngineEventHandlerOnAudioQualityJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -84,27 +115,34 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             quality == null ||
             delay == null ||
             lost == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onAudioQuality!(connection, remoteUid, quality, delay, lost);
-        break;
+        rtcEngineEventHandler.onAudioQuality!(
+            connection, remoteUid, quality, delay, lost);
+        return true;
 
-      case 'RtcEngineEventHandler_onLastmileProbeResult':
-        if (onLastmileProbeResult == null) break;
+      case 'onLastmileProbeResult':
+        if (rtcEngineEventHandler.onLastmileProbeResult == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnLastmileProbeResultJson paramJson =
             RtcEngineEventHandlerOnLastmileProbeResultJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         LastmileProbeResult? result = paramJson.result;
         if (result == null) {
-          break;
+          return true;
         }
         result = result.fillBuffers(buffers);
-        onLastmileProbeResult!(result);
-        break;
+        rtcEngineEventHandler.onLastmileProbeResult!(result);
+        return true;
 
-      case 'RtcEngineEventHandler_onAudioVolumeIndicationEx':
-        if (onAudioVolumeIndication == null) break;
+      case 'onAudioVolumeIndicationEx':
+        if (rtcEngineEventHandler.onAudioVolumeIndication == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnAudioVolumeIndicationJson paramJson =
             RtcEngineEventHandlerOnAudioVolumeIndicationJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -116,46 +154,55 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             speakers == null ||
             speakerNumber == null ||
             totalVolume == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
         speakers = speakers.map((e) => e.fillBuffers(buffers)).toList();
-        onAudioVolumeIndication!(
+        rtcEngineEventHandler.onAudioVolumeIndication!(
             connection, speakers, speakerNumber, totalVolume);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onLeaveChannelEx':
-        if (onLeaveChannel == null) break;
+      case 'onLeaveChannelEx':
+        if (rtcEngineEventHandler.onLeaveChannel == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnLeaveChannelJson paramJson =
             RtcEngineEventHandlerOnLeaveChannelJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         RtcStats? stats = paramJson.stats;
         if (connection == null || stats == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
         stats = stats.fillBuffers(buffers);
-        onLeaveChannel!(connection, stats);
-        break;
+        rtcEngineEventHandler.onLeaveChannel!(connection, stats);
+        return true;
 
-      case 'RtcEngineEventHandler_onRtcStatsEx':
-        if (onRtcStats == null) break;
+      case 'onRtcStatsEx':
+        if (rtcEngineEventHandler.onRtcStats == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRtcStatsJson paramJson =
             RtcEngineEventHandlerOnRtcStatsJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         RtcStats? stats = paramJson.stats;
         if (connection == null || stats == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
         stats = stats.fillBuffers(buffers);
-        onRtcStats!(connection, stats);
-        break;
+        rtcEngineEventHandler.onRtcStats!(connection, stats);
+        return true;
 
-      case 'RtcEngineEventHandler_onAudioDeviceStateChanged':
-        if (onAudioDeviceStateChanged == null) break;
+      case 'onAudioDeviceStateChanged':
+        if (rtcEngineEventHandler.onAudioDeviceStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnAudioDeviceStateChangedJson paramJson =
             RtcEngineEventHandlerOnAudioDeviceStateChangedJson.fromJson(
                 jsonMap);
@@ -164,33 +211,43 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         MediaDeviceType? deviceType = paramJson.deviceType;
         MediaDeviceStateType? deviceState = paramJson.deviceState;
         if (deviceId == null || deviceType == null || deviceState == null) {
-          break;
+          return true;
         }
-        onAudioDeviceStateChanged!(deviceId, deviceType, deviceState);
-        break;
+        rtcEngineEventHandler.onAudioDeviceStateChanged!(
+            deviceId, deviceType, deviceState);
+        return true;
 
-      case 'RtcEngineEventHandler_onAudioMixingFinished':
-        if (onAudioMixingFinished == null) break;
+      case 'onAudioMixingFinished':
+        if (rtcEngineEventHandler.onAudioMixingFinished == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnAudioMixingFinishedJson paramJson =
             RtcEngineEventHandlerOnAudioMixingFinishedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
-        onAudioMixingFinished!();
-        break;
+        rtcEngineEventHandler.onAudioMixingFinished!();
+        return true;
 
-      case 'RtcEngineEventHandler_onAudioEffectFinished':
-        if (onAudioEffectFinished == null) break;
+      case 'onAudioEffectFinished':
+        if (rtcEngineEventHandler.onAudioEffectFinished == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnAudioEffectFinishedJson paramJson =
             RtcEngineEventHandlerOnAudioEffectFinishedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         int? soundId = paramJson.soundId;
         if (soundId == null) {
-          break;
+          return true;
         }
-        onAudioEffectFinished!(soundId);
-        break;
+        rtcEngineEventHandler.onAudioEffectFinished!(soundId);
+        return true;
 
-      case 'RtcEngineEventHandler_onVideoDeviceStateChanged':
-        if (onVideoDeviceStateChanged == null) break;
+      case 'onVideoDeviceStateChanged':
+        if (rtcEngineEventHandler.onVideoDeviceStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnVideoDeviceStateChangedJson paramJson =
             RtcEngineEventHandlerOnVideoDeviceStateChangedJson.fromJson(
                 jsonMap);
@@ -199,25 +256,32 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         MediaDeviceType? deviceType = paramJson.deviceType;
         MediaDeviceStateType? deviceState = paramJson.deviceState;
         if (deviceId == null || deviceType == null || deviceState == null) {
-          break;
+          return true;
         }
-        onVideoDeviceStateChanged!(deviceId, deviceType, deviceState);
-        break;
+        rtcEngineEventHandler.onVideoDeviceStateChanged!(
+            deviceId, deviceType, deviceState);
+        return true;
 
-      case 'RtcEngineEventHandler_onMediaDeviceChanged':
-        if (onMediaDeviceChanged == null) break;
+      case 'onMediaDeviceChanged':
+        if (rtcEngineEventHandler.onMediaDeviceChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnMediaDeviceChangedJson paramJson =
             RtcEngineEventHandlerOnMediaDeviceChangedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         MediaDeviceType? deviceType = paramJson.deviceType;
         if (deviceType == null) {
-          break;
+          return true;
         }
-        onMediaDeviceChanged!(deviceType);
-        break;
+        rtcEngineEventHandler.onMediaDeviceChanged!(deviceType);
+        return true;
 
-      case 'RtcEngineEventHandler_onNetworkQualityEx':
-        if (onNetworkQuality == null) break;
+      case 'onNetworkQualityEx':
+        if (rtcEngineEventHandler.onNetworkQuality == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnNetworkQualityJson paramJson =
             RtcEngineEventHandlerOnNetworkQualityJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -229,67 +293,83 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             remoteUid == null ||
             txQuality == null ||
             rxQuality == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onNetworkQuality!(connection, remoteUid, txQuality, rxQuality);
-        break;
+        rtcEngineEventHandler.onNetworkQuality!(
+            connection, remoteUid, txQuality, rxQuality);
+        return true;
 
-      case 'RtcEngineEventHandler_onIntraRequestReceivedEx':
-        if (onIntraRequestReceived == null) break;
+      case 'onIntraRequestReceivedEx':
+        if (rtcEngineEventHandler.onIntraRequestReceived == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnIntraRequestReceivedJson paramJson =
             RtcEngineEventHandlerOnIntraRequestReceivedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         if (connection == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onIntraRequestReceived!(connection);
-        break;
+        rtcEngineEventHandler.onIntraRequestReceived!(connection);
+        return true;
 
-      case 'RtcEngineEventHandler_onUplinkNetworkInfoUpdated':
-        if (onUplinkNetworkInfoUpdated == null) break;
+      case 'onUplinkNetworkInfoUpdated':
+        if (rtcEngineEventHandler.onUplinkNetworkInfoUpdated == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnUplinkNetworkInfoUpdatedJson paramJson =
             RtcEngineEventHandlerOnUplinkNetworkInfoUpdatedJson.fromJson(
                 jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         UplinkNetworkInfo? info = paramJson.info;
         if (info == null) {
-          break;
+          return true;
         }
         info = info.fillBuffers(buffers);
-        onUplinkNetworkInfoUpdated!(info);
-        break;
+        rtcEngineEventHandler.onUplinkNetworkInfoUpdated!(info);
+        return true;
 
-      case 'RtcEngineEventHandler_onDownlinkNetworkInfoUpdated':
-        if (onDownlinkNetworkInfoUpdated == null) break;
+      case 'onDownlinkNetworkInfoUpdated':
+        if (rtcEngineEventHandler.onDownlinkNetworkInfoUpdated == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnDownlinkNetworkInfoUpdatedJson paramJson =
             RtcEngineEventHandlerOnDownlinkNetworkInfoUpdatedJson.fromJson(
                 jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         DownlinkNetworkInfo? info = paramJson.info;
         if (info == null) {
-          break;
+          return true;
         }
         info = info.fillBuffers(buffers);
-        onDownlinkNetworkInfoUpdated!(info);
-        break;
+        rtcEngineEventHandler.onDownlinkNetworkInfoUpdated!(info);
+        return true;
 
-      case 'RtcEngineEventHandler_onLastmileQuality':
-        if (onLastmileQuality == null) break;
+      case 'onLastmileQuality':
+        if (rtcEngineEventHandler.onLastmileQuality == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnLastmileQualityJson paramJson =
             RtcEngineEventHandlerOnLastmileQualityJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         QualityType? quality = paramJson.quality;
         if (quality == null) {
-          break;
+          return true;
         }
-        onLastmileQuality!(quality);
-        break;
+        rtcEngineEventHandler.onLastmileQuality!(quality);
+        return true;
 
-      case 'RtcEngineEventHandler_onFirstLocalVideoFrameEx':
-        if (onFirstLocalVideoFrame == null) break;
+      case 'onFirstLocalVideoFrameEx':
+        if (rtcEngineEventHandler.onFirstLocalVideoFrame == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnFirstLocalVideoFrameJson paramJson =
             RtcEngineEventHandlerOnFirstLocalVideoFrameJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -301,14 +381,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             width == null ||
             height == null ||
             elapsed == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onFirstLocalVideoFrame!(connection, width, height, elapsed);
-        break;
+        rtcEngineEventHandler.onFirstLocalVideoFrame!(
+            connection, width, height, elapsed);
+        return true;
 
-      case 'RtcEngineEventHandler_onFirstLocalVideoFramePublishedEx':
-        if (onFirstLocalVideoFramePublished == null) break;
+      case 'onFirstLocalVideoFramePublishedEx':
+        if (rtcEngineEventHandler.onFirstLocalVideoFramePublished == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnFirstLocalVideoFramePublishedJson paramJson =
             RtcEngineEventHandlerOnFirstLocalVideoFramePublishedJson.fromJson(
                 jsonMap);
@@ -316,14 +400,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         RtcConnection? connection = paramJson.connection;
         int? elapsed = paramJson.elapsed;
         if (connection == null || elapsed == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onFirstLocalVideoFramePublished!(connection, elapsed);
-        break;
+        rtcEngineEventHandler.onFirstLocalVideoFramePublished!(
+            connection, elapsed);
+        return true;
 
-      case 'RtcEngineEventHandler_onFirstRemoteVideoDecodedEx':
-        if (onFirstRemoteVideoDecoded == null) break;
+      case 'onFirstRemoteVideoDecodedEx':
+        if (rtcEngineEventHandler.onFirstRemoteVideoDecoded == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnFirstRemoteVideoDecodedJson paramJson =
             RtcEngineEventHandlerOnFirstRemoteVideoDecodedJson.fromJson(
                 jsonMap);
@@ -338,15 +426,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             width == null ||
             height == null ||
             elapsed == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onFirstRemoteVideoDecoded!(
+        rtcEngineEventHandler.onFirstRemoteVideoDecoded!(
             connection, remoteUid, width, height, elapsed);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onVideoSizeChangedEx':
-        if (onVideoSizeChanged == null) break;
+      case 'onVideoSizeChangedEx':
+        if (rtcEngineEventHandler.onVideoSizeChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnVideoSizeChangedJson paramJson =
             RtcEngineEventHandlerOnVideoSizeChangedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -362,15 +453,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             width == null ||
             height == null ||
             rotation == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onVideoSizeChanged!(
+        rtcEngineEventHandler.onVideoSizeChanged!(
             connection, sourceType, uid, width, height, rotation);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onLocalVideoStateChanged':
-        if (onLocalVideoStateChanged == null) break;
+      case 'onLocalVideoStateChanged':
+        if (rtcEngineEventHandler.onLocalVideoStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnLocalVideoStateChangedJson paramJson =
             RtcEngineEventHandlerOnLocalVideoStateChangedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -378,13 +472,16 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         LocalVideoStreamState? state = paramJson.state;
         LocalVideoStreamError? error = paramJson.error;
         if (source == null || state == null || error == null) {
-          break;
+          return true;
         }
-        onLocalVideoStateChanged!(source, state, error);
-        break;
+        rtcEngineEventHandler.onLocalVideoStateChanged!(source, state, error);
+        return true;
 
-      case 'RtcEngineEventHandler_onRemoteVideoStateChangedEx':
-        if (onRemoteVideoStateChanged == null) break;
+      case 'onRemoteVideoStateChangedEx':
+        if (rtcEngineEventHandler.onRemoteVideoStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRemoteVideoStateChangedJson paramJson =
             RtcEngineEventHandlerOnRemoteVideoStateChangedJson.fromJson(
                 jsonMap);
@@ -399,15 +496,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             state == null ||
             reason == null ||
             elapsed == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onRemoteVideoStateChanged!(
+        rtcEngineEventHandler.onRemoteVideoStateChanged!(
             connection, remoteUid, state, reason, elapsed);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onFirstRemoteVideoFrameEx':
-        if (onFirstRemoteVideoFrame == null) break;
+      case 'onFirstRemoteVideoFrameEx':
+        if (rtcEngineEventHandler.onFirstRemoteVideoFrame == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnFirstRemoteVideoFrameJson paramJson =
             RtcEngineEventHandlerOnFirstRemoteVideoFrameJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -421,14 +521,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             width == null ||
             height == null ||
             elapsed == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onFirstRemoteVideoFrame!(connection, remoteUid, width, height, elapsed);
-        break;
+        rtcEngineEventHandler.onFirstRemoteVideoFrame!(
+            connection, remoteUid, width, height, elapsed);
+        return true;
 
-      case 'RtcEngineEventHandler_onUserJoinedEx':
-        if (onUserJoined == null) break;
+      case 'onUserJoinedEx':
+        if (rtcEngineEventHandler.onUserJoined == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnUserJoinedJson paramJson =
             RtcEngineEventHandlerOnUserJoinedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -436,14 +540,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? remoteUid = paramJson.remoteUid;
         int? elapsed = paramJson.elapsed;
         if (connection == null || remoteUid == null || elapsed == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onUserJoined!(connection, remoteUid, elapsed);
-        break;
+        rtcEngineEventHandler.onUserJoined!(connection, remoteUid, elapsed);
+        return true;
 
-      case 'RtcEngineEventHandler_onUserOfflineEx':
-        if (onUserOffline == null) break;
+      case 'onUserOfflineEx':
+        if (rtcEngineEventHandler.onUserOffline == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnUserOfflineJson paramJson =
             RtcEngineEventHandlerOnUserOfflineJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -451,14 +558,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? remoteUid = paramJson.remoteUid;
         UserOfflineReasonType? reason = paramJson.reason;
         if (connection == null || remoteUid == null || reason == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onUserOffline!(connection, remoteUid, reason);
-        break;
+        rtcEngineEventHandler.onUserOffline!(connection, remoteUid, reason);
+        return true;
 
-      case 'RtcEngineEventHandler_onUserMuteAudioEx':
-        if (onUserMuteAudio == null) break;
+      case 'onUserMuteAudioEx':
+        if (rtcEngineEventHandler.onUserMuteAudio == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnUserMuteAudioJson paramJson =
             RtcEngineEventHandlerOnUserMuteAudioJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -466,14 +576,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? remoteUid = paramJson.remoteUid;
         bool? muted = paramJson.muted;
         if (connection == null || remoteUid == null || muted == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onUserMuteAudio!(connection, remoteUid, muted);
-        break;
+        rtcEngineEventHandler.onUserMuteAudio!(connection, remoteUid, muted);
+        return true;
 
-      case 'RtcEngineEventHandler_onUserMuteVideoEx':
-        if (onUserMuteVideo == null) break;
+      case 'onUserMuteVideoEx':
+        if (rtcEngineEventHandler.onUserMuteVideo == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnUserMuteVideoJson paramJson =
             RtcEngineEventHandlerOnUserMuteVideoJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -481,14 +594,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? remoteUid = paramJson.remoteUid;
         bool? muted = paramJson.muted;
         if (connection == null || remoteUid == null || muted == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onUserMuteVideo!(connection, remoteUid, muted);
-        break;
+        rtcEngineEventHandler.onUserMuteVideo!(connection, remoteUid, muted);
+        return true;
 
-      case 'RtcEngineEventHandler_onUserEnableVideoEx':
-        if (onUserEnableVideo == null) break;
+      case 'onUserEnableVideoEx':
+        if (rtcEngineEventHandler.onUserEnableVideo == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnUserEnableVideoJson paramJson =
             RtcEngineEventHandlerOnUserEnableVideoJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -496,14 +612,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? remoteUid = paramJson.remoteUid;
         bool? enabled = paramJson.enabled;
         if (connection == null || remoteUid == null || enabled == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onUserEnableVideo!(connection, remoteUid, enabled);
-        break;
+        rtcEngineEventHandler.onUserEnableVideo!(
+            connection, remoteUid, enabled);
+        return true;
 
-      case 'RtcEngineEventHandler_onUserStateChangedEx':
-        if (onUserStateChanged == null) break;
+      case 'onUserStateChangedEx':
+        if (rtcEngineEventHandler.onUserStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnUserStateChangedJson paramJson =
             RtcEngineEventHandlerOnUserStateChangedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -511,14 +631,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? remoteUid = paramJson.remoteUid;
         int? state = paramJson.state;
         if (connection == null || remoteUid == null || state == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onUserStateChanged!(connection, remoteUid, state);
-        break;
+        rtcEngineEventHandler.onUserStateChanged!(connection, remoteUid, state);
+        return true;
 
-      case 'RtcEngineEventHandler_onUserEnableLocalVideoEx':
-        if (onUserEnableLocalVideo == null) break;
+      case 'onUserEnableLocalVideoEx':
+        if (rtcEngineEventHandler.onUserEnableLocalVideo == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnUserEnableLocalVideoJson paramJson =
             RtcEngineEventHandlerOnUserEnableLocalVideoJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -526,14 +649,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? remoteUid = paramJson.remoteUid;
         bool? enabled = paramJson.enabled;
         if (connection == null || remoteUid == null || enabled == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onUserEnableLocalVideo!(connection, remoteUid, enabled);
-        break;
+        rtcEngineEventHandler.onUserEnableLocalVideo!(
+            connection, remoteUid, enabled);
+        return true;
 
-      case 'RtcEngineEventHandler_onApiCallExecuted':
-        if (onApiCallExecuted == null) break;
+      case 'onApiCallExecuted':
+        if (rtcEngineEventHandler.onApiCallExecuted == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnApiCallExecutedJson paramJson =
             RtcEngineEventHandlerOnApiCallExecutedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -541,81 +668,99 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         String? api = paramJson.api;
         String? result = paramJson.result;
         if (err == null || api == null || result == null) {
-          break;
+          return true;
         }
-        onApiCallExecuted!(err, api, result);
-        break;
+        rtcEngineEventHandler.onApiCallExecuted!(err, api, result);
+        return true;
 
-      case 'RtcEngineEventHandler_onLocalAudioStatsEx':
-        if (onLocalAudioStats == null) break;
+      case 'onLocalAudioStatsEx':
+        if (rtcEngineEventHandler.onLocalAudioStats == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnLocalAudioStatsJson paramJson =
             RtcEngineEventHandlerOnLocalAudioStatsJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         LocalAudioStats? stats = paramJson.stats;
         if (connection == null || stats == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
         stats = stats.fillBuffers(buffers);
-        onLocalAudioStats!(connection, stats);
-        break;
+        rtcEngineEventHandler.onLocalAudioStats!(connection, stats);
+        return true;
 
-      case 'RtcEngineEventHandler_onRemoteAudioStatsEx':
-        if (onRemoteAudioStats == null) break;
+      case 'onRemoteAudioStatsEx':
+        if (rtcEngineEventHandler.onRemoteAudioStats == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRemoteAudioStatsJson paramJson =
             RtcEngineEventHandlerOnRemoteAudioStatsJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         RemoteAudioStats? stats = paramJson.stats;
         if (connection == null || stats == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
         stats = stats.fillBuffers(buffers);
-        onRemoteAudioStats!(connection, stats);
-        break;
+        rtcEngineEventHandler.onRemoteAudioStats!(connection, stats);
+        return true;
 
-      case 'RtcEngineEventHandler_onLocalVideoStatsEx':
-        if (onLocalVideoStats == null) break;
+      case 'onLocalVideoStatsEx':
+        if (rtcEngineEventHandler.onLocalVideoStats == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnLocalVideoStatsJson paramJson =
             RtcEngineEventHandlerOnLocalVideoStatsJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         LocalVideoStats? stats = paramJson.stats;
         if (connection == null || stats == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
         stats = stats.fillBuffers(buffers);
-        onLocalVideoStats!(connection, stats);
-        break;
+        rtcEngineEventHandler.onLocalVideoStats!(connection, stats);
+        return true;
 
-      case 'RtcEngineEventHandler_onRemoteVideoStatsEx':
-        if (onRemoteVideoStats == null) break;
+      case 'onRemoteVideoStatsEx':
+        if (rtcEngineEventHandler.onRemoteVideoStats == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRemoteVideoStatsJson paramJson =
             RtcEngineEventHandlerOnRemoteVideoStatsJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         RemoteVideoStats? stats = paramJson.stats;
         if (connection == null || stats == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
         stats = stats.fillBuffers(buffers);
-        onRemoteVideoStats!(connection, stats);
-        break;
+        rtcEngineEventHandler.onRemoteVideoStats!(connection, stats);
+        return true;
 
-      case 'RtcEngineEventHandler_onCameraReady':
-        if (onCameraReady == null) break;
+      case 'onCameraReady':
+        if (rtcEngineEventHandler.onCameraReady == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnCameraReadyJson paramJson =
             RtcEngineEventHandlerOnCameraReadyJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
-        onCameraReady!();
-        break;
+        rtcEngineEventHandler.onCameraReady!();
+        return true;
 
-      case 'RtcEngineEventHandler_onCameraFocusAreaChanged':
-        if (onCameraFocusAreaChanged == null) break;
+      case 'onCameraFocusAreaChanged':
+        if (rtcEngineEventHandler.onCameraFocusAreaChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnCameraFocusAreaChangedJson paramJson =
             RtcEngineEventHandlerOnCameraFocusAreaChangedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -624,13 +769,16 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? width = paramJson.width;
         int? height = paramJson.height;
         if (x == null || y == null || width == null || height == null) {
-          break;
+          return true;
         }
-        onCameraFocusAreaChanged!(x, y, width, height);
-        break;
+        rtcEngineEventHandler.onCameraFocusAreaChanged!(x, y, width, height);
+        return true;
 
-      case 'RtcEngineEventHandler_onCameraExposureAreaChanged':
-        if (onCameraExposureAreaChanged == null) break;
+      case 'onCameraExposureAreaChanged':
+        if (rtcEngineEventHandler.onCameraExposureAreaChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnCameraExposureAreaChangedJson paramJson =
             RtcEngineEventHandlerOnCameraExposureAreaChangedJson.fromJson(
                 jsonMap);
@@ -640,13 +788,16 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? width = paramJson.width;
         int? height = paramJson.height;
         if (x == null || y == null || width == null || height == null) {
-          break;
+          return true;
         }
-        onCameraExposureAreaChanged!(x, y, width, height);
-        break;
+        rtcEngineEventHandler.onCameraExposureAreaChanged!(x, y, width, height);
+        return true;
 
-      case 'RtcEngineEventHandler_onFacePositionChanged':
-        if (onFacePositionChanged == null) break;
+      case 'onFacePositionChanged':
+        if (rtcEngineEventHandler.onFacePositionChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnFacePositionChangedJson paramJson =
             RtcEngineEventHandlerOnFacePositionChangedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -660,23 +811,29 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             vecRectangle == null ||
             vecDistance == null ||
             numFaces == null) {
-          break;
+          return true;
         }
         vecRectangle = vecRectangle.fillBuffers(buffers);
-        onFacePositionChanged!(
+        rtcEngineEventHandler.onFacePositionChanged!(
             imageWidth, imageHeight, vecRectangle, vecDistance, numFaces);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onVideoStopped':
-        if (onVideoStopped == null) break;
+      case 'onVideoStopped':
+        if (rtcEngineEventHandler.onVideoStopped == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnVideoStoppedJson paramJson =
             RtcEngineEventHandlerOnVideoStoppedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
-        onVideoStopped!();
-        break;
+        rtcEngineEventHandler.onVideoStopped!();
+        return true;
 
-      case 'RtcEngineEventHandler_onAudioMixingStateChanged':
-        if (onAudioMixingStateChanged == null) break;
+      case 'onAudioMixingStateChanged':
+        if (rtcEngineEventHandler.onAudioMixingStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnAudioMixingStateChangedJson paramJson =
             RtcEngineEventHandlerOnAudioMixingStateChangedJson.fromJson(
                 jsonMap);
@@ -684,13 +841,16 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         AudioMixingStateType? state = paramJson.state;
         AudioMixingReasonType? reason = paramJson.reason;
         if (state == null || reason == null) {
-          break;
+          return true;
         }
-        onAudioMixingStateChanged!(state, reason);
-        break;
+        rtcEngineEventHandler.onAudioMixingStateChanged!(state, reason);
+        return true;
 
-      case 'RtcEngineEventHandler_onRhythmPlayerStateChanged':
-        if (onRhythmPlayerStateChanged == null) break;
+      case 'onRhythmPlayerStateChanged':
+        if (rtcEngineEventHandler.onRhythmPlayerStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRhythmPlayerStateChangedJson paramJson =
             RtcEngineEventHandlerOnRhythmPlayerStateChangedJson.fromJson(
                 jsonMap);
@@ -698,52 +858,64 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         RhythmPlayerStateType? state = paramJson.state;
         RhythmPlayerErrorType? errorCode = paramJson.errorCode;
         if (state == null || errorCode == null) {
-          break;
+          return true;
         }
-        onRhythmPlayerStateChanged!(state, errorCode);
-        break;
+        rtcEngineEventHandler.onRhythmPlayerStateChanged!(state, errorCode);
+        return true;
 
-      case 'RtcEngineEventHandler_onConnectionLostEx':
-        if (onConnectionLost == null) break;
+      case 'onConnectionLostEx':
+        if (rtcEngineEventHandler.onConnectionLost == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnConnectionLostJson paramJson =
             RtcEngineEventHandlerOnConnectionLostJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         if (connection == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onConnectionLost!(connection);
-        break;
+        rtcEngineEventHandler.onConnectionLost!(connection);
+        return true;
 
-      case 'RtcEngineEventHandler_onConnectionInterruptedEx':
-        if (onConnectionInterrupted == null) break;
+      case 'onConnectionInterruptedEx':
+        if (rtcEngineEventHandler.onConnectionInterrupted == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnConnectionInterruptedJson paramJson =
             RtcEngineEventHandlerOnConnectionInterruptedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         if (connection == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onConnectionInterrupted!(connection);
-        break;
+        rtcEngineEventHandler.onConnectionInterrupted!(connection);
+        return true;
 
-      case 'RtcEngineEventHandler_onConnectionBannedEx':
-        if (onConnectionBanned == null) break;
+      case 'onConnectionBannedEx':
+        if (rtcEngineEventHandler.onConnectionBanned == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnConnectionBannedJson paramJson =
             RtcEngineEventHandlerOnConnectionBannedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         if (connection == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onConnectionBanned!(connection);
-        break;
+        rtcEngineEventHandler.onConnectionBanned!(connection);
+        return true;
 
-      case 'RtcEngineEventHandler_onStreamMessageEx':
-        if (onStreamMessage == null) break;
+      case 'onStreamMessageEx':
+        if (rtcEngineEventHandler.onStreamMessage == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnStreamMessageJson paramJson =
             RtcEngineEventHandlerOnStreamMessageJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -759,14 +931,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             data == null ||
             length == null ||
             sentTs == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onStreamMessage!(connection, remoteUid, streamId, data, length, sentTs);
-        break;
+        rtcEngineEventHandler.onStreamMessage!(
+            connection, remoteUid, streamId, data, length, sentTs);
+        return true;
 
-      case 'RtcEngineEventHandler_onStreamMessageErrorEx':
-        if (onStreamMessageError == null) break;
+      case 'onStreamMessageErrorEx':
+        if (rtcEngineEventHandler.onStreamMessageError == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnStreamMessageErrorJson paramJson =
             RtcEngineEventHandlerOnStreamMessageErrorJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -782,28 +958,34 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             code == null ||
             missed == null ||
             cached == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onStreamMessageError!(
+        rtcEngineEventHandler.onStreamMessageError!(
             connection, remoteUid, streamId, code, missed, cached);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onRequestTokenEx':
-        if (onRequestToken == null) break;
+      case 'onRequestTokenEx':
+        if (rtcEngineEventHandler.onRequestToken == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRequestTokenJson paramJson =
             RtcEngineEventHandlerOnRequestTokenJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         if (connection == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onRequestToken!(connection);
-        break;
+        rtcEngineEventHandler.onRequestToken!(connection);
+        return true;
 
-      case 'RtcEngineEventHandler_onTokenPrivilegeWillExpireEx':
-        if (onTokenPrivilegeWillExpire == null) break;
+      case 'onTokenPrivilegeWillExpireEx':
+        if (rtcEngineEventHandler.onTokenPrivilegeWillExpire == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnTokenPrivilegeWillExpireJson paramJson =
             RtcEngineEventHandlerOnTokenPrivilegeWillExpireJson.fromJson(
                 jsonMap);
@@ -811,14 +993,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         RtcConnection? connection = paramJson.connection;
         String? token = paramJson.token;
         if (connection == null || token == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onTokenPrivilegeWillExpire!(connection, token);
-        break;
+        rtcEngineEventHandler.onTokenPrivilegeWillExpire!(connection, token);
+        return true;
 
-      case 'RtcEngineEventHandler_onFirstLocalAudioFramePublishedEx':
-        if (onFirstLocalAudioFramePublished == null) break;
+      case 'onFirstLocalAudioFramePublishedEx':
+        if (rtcEngineEventHandler.onFirstLocalAudioFramePublished == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnFirstLocalAudioFramePublishedJson paramJson =
             RtcEngineEventHandlerOnFirstLocalAudioFramePublishedJson.fromJson(
                 jsonMap);
@@ -826,14 +1011,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         RtcConnection? connection = paramJson.connection;
         int? elapsed = paramJson.elapsed;
         if (connection == null || elapsed == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onFirstLocalAudioFramePublished!(connection, elapsed);
-        break;
+        rtcEngineEventHandler.onFirstLocalAudioFramePublished!(
+            connection, elapsed);
+        return true;
 
-      case 'RtcEngineEventHandler_onFirstRemoteAudioFrameEx':
-        if (onFirstRemoteAudioFrame == null) break;
+      case 'onFirstRemoteAudioFrameEx':
+        if (rtcEngineEventHandler.onFirstRemoteAudioFrame == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnFirstRemoteAudioFrameJson paramJson =
             RtcEngineEventHandlerOnFirstRemoteAudioFrameJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -841,14 +1030,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? userId = paramJson.userId;
         int? elapsed = paramJson.elapsed;
         if (connection == null || userId == null || elapsed == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onFirstRemoteAudioFrame!(connection, userId, elapsed);
-        break;
+        rtcEngineEventHandler.onFirstRemoteAudioFrame!(
+            connection, userId, elapsed);
+        return true;
 
-      case 'RtcEngineEventHandler_onFirstRemoteAudioDecodedEx':
-        if (onFirstRemoteAudioDecoded == null) break;
+      case 'onFirstRemoteAudioDecodedEx':
+        if (rtcEngineEventHandler.onFirstRemoteAudioDecoded == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnFirstRemoteAudioDecodedJson paramJson =
             RtcEngineEventHandlerOnFirstRemoteAudioDecodedJson.fromJson(
                 jsonMap);
@@ -857,14 +1050,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? uid = paramJson.uid;
         int? elapsed = paramJson.elapsed;
         if (connection == null || uid == null || elapsed == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onFirstRemoteAudioDecoded!(connection, uid, elapsed);
-        break;
+        rtcEngineEventHandler.onFirstRemoteAudioDecoded!(
+            connection, uid, elapsed);
+        return true;
 
-      case 'RtcEngineEventHandler_onLocalAudioStateChangedEx':
-        if (onLocalAudioStateChanged == null) break;
+      case 'onLocalAudioStateChangedEx':
+        if (rtcEngineEventHandler.onLocalAudioStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnLocalAudioStateChangedJson paramJson =
             RtcEngineEventHandlerOnLocalAudioStateChangedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -872,14 +1069,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         LocalAudioStreamState? state = paramJson.state;
         LocalAudioStreamError? error = paramJson.error;
         if (connection == null || state == null || error == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onLocalAudioStateChanged!(connection, state, error);
-        break;
+        rtcEngineEventHandler.onLocalAudioStateChanged!(
+            connection, state, error);
+        return true;
 
-      case 'RtcEngineEventHandler_onRemoteAudioStateChangedEx':
-        if (onRemoteAudioStateChanged == null) break;
+      case 'onRemoteAudioStateChangedEx':
+        if (rtcEngineEventHandler.onRemoteAudioStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRemoteAudioStateChangedJson paramJson =
             RtcEngineEventHandlerOnRemoteAudioStateChangedJson.fromJson(
                 jsonMap);
@@ -894,41 +1095,50 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             state == null ||
             reason == null ||
             elapsed == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onRemoteAudioStateChanged!(
+        rtcEngineEventHandler.onRemoteAudioStateChanged!(
             connection, remoteUid, state, reason, elapsed);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onActiveSpeakerEx':
-        if (onActiveSpeaker == null) break;
+      case 'onActiveSpeakerEx':
+        if (rtcEngineEventHandler.onActiveSpeaker == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnActiveSpeakerJson paramJson =
             RtcEngineEventHandlerOnActiveSpeakerJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         int? uid = paramJson.uid;
         if (connection == null || uid == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onActiveSpeaker!(connection, uid);
-        break;
+        rtcEngineEventHandler.onActiveSpeaker!(connection, uid);
+        return true;
 
-      case 'RtcEngineEventHandler_onContentInspectResult':
-        if (onContentInspectResult == null) break;
+      case 'onContentInspectResult':
+        if (rtcEngineEventHandler.onContentInspectResult == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnContentInspectResultJson paramJson =
             RtcEngineEventHandlerOnContentInspectResultJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         ContentInspectResult? result = paramJson.result;
         if (result == null) {
-          break;
+          return true;
         }
-        onContentInspectResult!(result);
-        break;
+        rtcEngineEventHandler.onContentInspectResult!(result);
+        return true;
 
-      case 'RtcEngineEventHandler_onSnapshotTakenEx':
-        if (onSnapshotTaken == null) break;
+      case 'onSnapshotTakenEx':
+        if (rtcEngineEventHandler.onSnapshotTaken == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnSnapshotTakenJson paramJson =
             RtcEngineEventHandlerOnSnapshotTakenJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -944,14 +1154,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             width == null ||
             height == null ||
             errCode == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onSnapshotTaken!(connection, uid, filePath, width, height, errCode);
-        break;
+        rtcEngineEventHandler.onSnapshotTaken!(
+            connection, uid, filePath, width, height, errCode);
+        return true;
 
-      case 'RtcEngineEventHandler_onClientRoleChangedEx':
-        if (onClientRoleChanged == null) break;
+      case 'onClientRoleChangedEx':
+        if (rtcEngineEventHandler.onClientRoleChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnClientRoleChangedJson paramJson =
             RtcEngineEventHandlerOnClientRoleChangedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -959,14 +1173,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         ClientRoleType? oldRole = paramJson.oldRole;
         ClientRoleType? newRole = paramJson.newRole;
         if (connection == null || oldRole == null || newRole == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onClientRoleChanged!(connection, oldRole, newRole);
-        break;
+        rtcEngineEventHandler.onClientRoleChanged!(
+            connection, oldRole, newRole);
+        return true;
 
-      case 'RtcEngineEventHandler_onClientRoleChangeFailedEx':
-        if (onClientRoleChangeFailed == null) break;
+      case 'onClientRoleChangeFailedEx':
+        if (rtcEngineEventHandler.onClientRoleChangeFailed == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnClientRoleChangeFailedJson paramJson =
             RtcEngineEventHandlerOnClientRoleChangeFailedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -974,14 +1192,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         ClientRoleChangeFailedReason? reason = paramJson.reason;
         ClientRoleType? currentRole = paramJson.currentRole;
         if (connection == null || reason == null || currentRole == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onClientRoleChangeFailed!(connection, reason, currentRole);
-        break;
+        rtcEngineEventHandler.onClientRoleChangeFailed!(
+            connection, reason, currentRole);
+        return true;
 
-      case 'RtcEngineEventHandler_onAudioDeviceVolumeChanged':
-        if (onAudioDeviceVolumeChanged == null) break;
+      case 'onAudioDeviceVolumeChanged':
+        if (rtcEngineEventHandler.onAudioDeviceVolumeChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnAudioDeviceVolumeChangedJson paramJson =
             RtcEngineEventHandlerOnAudioDeviceVolumeChangedJson.fromJson(
                 jsonMap);
@@ -990,13 +1212,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? volume = paramJson.volume;
         bool? muted = paramJson.muted;
         if (deviceType == null || volume == null || muted == null) {
-          break;
+          return true;
         }
-        onAudioDeviceVolumeChanged!(deviceType, volume, muted);
-        break;
+        rtcEngineEventHandler.onAudioDeviceVolumeChanged!(
+            deviceType, volume, muted);
+        return true;
 
-      case 'RtcEngineEventHandler_onRtmpStreamingStateChanged':
-        if (onRtmpStreamingStateChanged == null) break;
+      case 'onRtmpStreamingStateChanged':
+        if (rtcEngineEventHandler.onRtmpStreamingStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRtmpStreamingStateChangedJson paramJson =
             RtcEngineEventHandlerOnRtmpStreamingStateChangedJson.fromJson(
                 jsonMap);
@@ -1005,46 +1231,58 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         RtmpStreamPublishState? state = paramJson.state;
         RtmpStreamPublishErrorType? errCode = paramJson.errCode;
         if (url == null || state == null || errCode == null) {
-          break;
+          return true;
         }
-        onRtmpStreamingStateChanged!(url, state, errCode);
-        break;
+        rtcEngineEventHandler.onRtmpStreamingStateChanged!(url, state, errCode);
+        return true;
 
-      case 'RtcEngineEventHandler_onRtmpStreamingEvent':
-        if (onRtmpStreamingEvent == null) break;
+      case 'onRtmpStreamingEvent':
+        if (rtcEngineEventHandler.onRtmpStreamingEvent == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRtmpStreamingEventJson paramJson =
             RtcEngineEventHandlerOnRtmpStreamingEventJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         String? url = paramJson.url;
         RtmpStreamingEvent? eventCode = paramJson.eventCode;
         if (url == null || eventCode == null) {
-          break;
+          return true;
         }
-        onRtmpStreamingEvent!(url, eventCode);
-        break;
+        rtcEngineEventHandler.onRtmpStreamingEvent!(url, eventCode);
+        return true;
 
-      case 'RtcEngineEventHandler_onTranscodingUpdated':
-        if (onTranscodingUpdated == null) break;
+      case 'onTranscodingUpdated':
+        if (rtcEngineEventHandler.onTranscodingUpdated == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnTranscodingUpdatedJson paramJson =
             RtcEngineEventHandlerOnTranscodingUpdatedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
-        onTranscodingUpdated!();
-        break;
+        rtcEngineEventHandler.onTranscodingUpdated!();
+        return true;
 
-      case 'RtcEngineEventHandler_onAudioRoutingChanged':
-        if (onAudioRoutingChanged == null) break;
+      case 'onAudioRoutingChanged':
+        if (rtcEngineEventHandler.onAudioRoutingChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnAudioRoutingChangedJson paramJson =
             RtcEngineEventHandlerOnAudioRoutingChangedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         int? routing = paramJson.routing;
         if (routing == null) {
-          break;
+          return true;
         }
-        onAudioRoutingChanged!(routing);
-        break;
+        rtcEngineEventHandler.onAudioRoutingChanged!(routing);
+        return true;
 
-      case 'RtcEngineEventHandler_onChannelMediaRelayStateChanged':
-        if (onChannelMediaRelayStateChanged == null) break;
+      case 'onChannelMediaRelayStateChanged':
+        if (rtcEngineEventHandler.onChannelMediaRelayStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnChannelMediaRelayStateChangedJson paramJson =
             RtcEngineEventHandlerOnChannelMediaRelayStateChangedJson.fromJson(
                 jsonMap);
@@ -1052,38 +1290,49 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         ChannelMediaRelayState? state = paramJson.state;
         ChannelMediaRelayError? code = paramJson.code;
         if (state == null || code == null) {
-          break;
+          return true;
         }
-        onChannelMediaRelayStateChanged!(state, code);
-        break;
+        rtcEngineEventHandler.onChannelMediaRelayStateChanged!(state, code);
+        return true;
 
-      case 'RtcEngineEventHandler_onChannelMediaRelayEvent':
-        if (onChannelMediaRelayEvent == null) break;
+      case 'onChannelMediaRelayEvent':
+        if (rtcEngineEventHandler.onChannelMediaRelayEvent == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnChannelMediaRelayEventJson paramJson =
             RtcEngineEventHandlerOnChannelMediaRelayEventJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         ChannelMediaRelayEvent? code = paramJson.code;
         if (code == null) {
-          break;
+          return true;
         }
-        onChannelMediaRelayEvent!(code);
-        break;
+        rtcEngineEventHandler.onChannelMediaRelayEvent!(code);
+        return true;
 
-      case 'RtcEngineEventHandler_onLocalPublishFallbackToAudioOnly':
-        if (onLocalPublishFallbackToAudioOnly == null) break;
+      case 'onLocalPublishFallbackToAudioOnly':
+        if (rtcEngineEventHandler.onLocalPublishFallbackToAudioOnly == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnLocalPublishFallbackToAudioOnlyJson paramJson =
             RtcEngineEventHandlerOnLocalPublishFallbackToAudioOnlyJson.fromJson(
                 jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         bool? isFallbackOrRecover = paramJson.isFallbackOrRecover;
         if (isFallbackOrRecover == null) {
-          break;
+          return true;
         }
-        onLocalPublishFallbackToAudioOnly!(isFallbackOrRecover);
-        break;
+        rtcEngineEventHandler
+            .onLocalPublishFallbackToAudioOnly!(isFallbackOrRecover);
+        return true;
 
-      case 'RtcEngineEventHandler_onRemoteSubscribeFallbackToAudioOnly':
-        if (onRemoteSubscribeFallbackToAudioOnly == null) break;
+      case 'onRemoteSubscribeFallbackToAudioOnly':
+        if (rtcEngineEventHandler.onRemoteSubscribeFallbackToAudioOnly ==
+            null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRemoteSubscribeFallbackToAudioOnlyJson
             paramJson =
             RtcEngineEventHandlerOnRemoteSubscribeFallbackToAudioOnlyJson
@@ -1092,13 +1341,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? uid = paramJson.uid;
         bool? isFallbackOrRecover = paramJson.isFallbackOrRecover;
         if (uid == null || isFallbackOrRecover == null) {
-          break;
+          return true;
         }
-        onRemoteSubscribeFallbackToAudioOnly!(uid, isFallbackOrRecover);
-        break;
+        rtcEngineEventHandler.onRemoteSubscribeFallbackToAudioOnly!(
+            uid, isFallbackOrRecover);
+        return true;
 
-      case 'RtcEngineEventHandler_onRemoteAudioTransportStatsEx':
-        if (onRemoteAudioTransportStats == null) break;
+      case 'onRemoteAudioTransportStatsEx':
+        if (rtcEngineEventHandler.onRemoteAudioTransportStats == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRemoteAudioTransportStatsJson paramJson =
             RtcEngineEventHandlerOnRemoteAudioTransportStatsJson.fromJson(
                 jsonMap);
@@ -1113,15 +1366,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             delay == null ||
             lost == null ||
             rxKBitRate == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onRemoteAudioTransportStats!(
+        rtcEngineEventHandler.onRemoteAudioTransportStats!(
             connection, remoteUid, delay, lost, rxKBitRate);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onRemoteVideoTransportStatsEx':
-        if (onRemoteVideoTransportStats == null) break;
+      case 'onRemoteVideoTransportStatsEx':
+        if (rtcEngineEventHandler.onRemoteVideoTransportStats == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnRemoteVideoTransportStatsJson paramJson =
             RtcEngineEventHandlerOnRemoteVideoTransportStatsJson.fromJson(
                 jsonMap);
@@ -1136,15 +1392,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             delay == null ||
             lost == null ||
             rxKBitRate == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onRemoteVideoTransportStats!(
+        rtcEngineEventHandler.onRemoteVideoTransportStats!(
             connection, remoteUid, delay, lost, rxKBitRate);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onConnectionStateChangedEx':
-        if (onConnectionStateChanged == null) break;
+      case 'onConnectionStateChangedEx':
+        if (rtcEngineEventHandler.onConnectionStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnConnectionStateChangedJson paramJson =
             RtcEngineEventHandlerOnConnectionStateChangedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -1152,14 +1411,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         ConnectionStateType? state = paramJson.state;
         ConnectionChangedReasonType? reason = paramJson.reason;
         if (connection == null || state == null || reason == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onConnectionStateChanged!(connection, state, reason);
-        break;
+        rtcEngineEventHandler.onConnectionStateChanged!(
+            connection, state, reason);
+        return true;
 
-      case 'RtcEngineEventHandler_onWlAccMessageEx':
-        if (onWlAccMessage == null) break;
+      case 'onWlAccMessageEx':
+        if (rtcEngineEventHandler.onWlAccMessage == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnWlAccMessageJson paramJson =
             RtcEngineEventHandlerOnWlAccMessageJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -1171,14 +1434,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             reason == null ||
             action == null ||
             wlAccMsg == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onWlAccMessage!(connection, reason, action, wlAccMsg);
-        break;
+        rtcEngineEventHandler.onWlAccMessage!(
+            connection, reason, action, wlAccMsg);
+        return true;
 
-      case 'RtcEngineEventHandler_onWlAccStatsEx':
-        if (onWlAccStats == null) break;
+      case 'onWlAccStatsEx':
+        if (rtcEngineEventHandler.onWlAccStats == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnWlAccStatsJson paramJson =
             RtcEngineEventHandlerOnWlAccStatsJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -1188,83 +1455,102 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         if (connection == null ||
             currentStats == null ||
             averageStats == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
         currentStats = currentStats.fillBuffers(buffers);
         averageStats = averageStats.fillBuffers(buffers);
-        onWlAccStats!(connection, currentStats, averageStats);
-        break;
+        rtcEngineEventHandler.onWlAccStats!(
+            connection, currentStats, averageStats);
+        return true;
 
-      case 'RtcEngineEventHandler_onNetworkTypeChangedEx':
-        if (onNetworkTypeChanged == null) break;
+      case 'onNetworkTypeChangedEx':
+        if (rtcEngineEventHandler.onNetworkTypeChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnNetworkTypeChangedJson paramJson =
             RtcEngineEventHandlerOnNetworkTypeChangedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         NetworkType? type = paramJson.type;
         if (connection == null || type == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onNetworkTypeChanged!(connection, type);
-        break;
+        rtcEngineEventHandler.onNetworkTypeChanged!(connection, type);
+        return true;
 
-      case 'RtcEngineEventHandler_onEncryptionErrorEx':
-        if (onEncryptionError == null) break;
+      case 'onEncryptionErrorEx':
+        if (rtcEngineEventHandler.onEncryptionError == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnEncryptionErrorJson paramJson =
             RtcEngineEventHandlerOnEncryptionErrorJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         RtcConnection? connection = paramJson.connection;
         EncryptionErrorType? errorType = paramJson.errorType;
         if (connection == null || errorType == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onEncryptionError!(connection, errorType);
-        break;
+        rtcEngineEventHandler.onEncryptionError!(connection, errorType);
+        return true;
 
-      case 'RtcEngineEventHandler_onPermissionError':
-        if (onPermissionError == null) break;
+      case 'onPermissionError':
+        if (rtcEngineEventHandler.onPermissionError == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnPermissionErrorJson paramJson =
             RtcEngineEventHandlerOnPermissionErrorJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         PermissionType? permissionType = paramJson.permissionType;
         if (permissionType == null) {
-          break;
+          return true;
         }
-        onPermissionError!(permissionType);
-        break;
+        rtcEngineEventHandler.onPermissionError!(permissionType);
+        return true;
 
-      case 'RtcEngineEventHandler_onLocalUserRegistered':
-        if (onLocalUserRegistered == null) break;
+      case 'onLocalUserRegistered':
+        if (rtcEngineEventHandler.onLocalUserRegistered == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnLocalUserRegisteredJson paramJson =
             RtcEngineEventHandlerOnLocalUserRegisteredJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         int? uid = paramJson.uid;
         String? userAccount = paramJson.userAccount;
         if (uid == null || userAccount == null) {
-          break;
+          return true;
         }
-        onLocalUserRegistered!(uid, userAccount);
-        break;
+        rtcEngineEventHandler.onLocalUserRegistered!(uid, userAccount);
+        return true;
 
-      case 'RtcEngineEventHandler_onUserInfoUpdated':
-        if (onUserInfoUpdated == null) break;
+      case 'onUserInfoUpdated':
+        if (rtcEngineEventHandler.onUserInfoUpdated == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnUserInfoUpdatedJson paramJson =
             RtcEngineEventHandlerOnUserInfoUpdatedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         int? uid = paramJson.uid;
         UserInfo? info = paramJson.info;
         if (uid == null || info == null) {
-          break;
+          return true;
         }
         info = info.fillBuffers(buffers);
-        onUserInfoUpdated!(uid, info);
-        break;
+        rtcEngineEventHandler.onUserInfoUpdated!(uid, info);
+        return true;
 
-      case 'RtcEngineEventHandler_onUploadLogResultEx':
-        if (onUploadLogResult == null) break;
+      case 'onUploadLogResultEx':
+        if (rtcEngineEventHandler.onUploadLogResult == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnUploadLogResultJson paramJson =
             RtcEngineEventHandlerOnUploadLogResultJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -1276,14 +1562,18 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             requestId == null ||
             success == null ||
             reason == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onUploadLogResult!(connection, requestId, success, reason);
-        break;
+        rtcEngineEventHandler.onUploadLogResult!(
+            connection, requestId, success, reason);
+        return true;
 
-      case 'RtcEngineEventHandler_onAudioSubscribeStateChanged':
-        if (onAudioSubscribeStateChanged == null) break;
+      case 'onAudioSubscribeStateChanged':
+        if (rtcEngineEventHandler.onAudioSubscribeStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnAudioSubscribeStateChangedJson paramJson =
             RtcEngineEventHandlerOnAudioSubscribeStateChangedJson.fromJson(
                 jsonMap);
@@ -1298,14 +1588,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             oldState == null ||
             newState == null ||
             elapseSinceLastState == null) {
-          break;
+          return true;
         }
-        onAudioSubscribeStateChanged!(
+        rtcEngineEventHandler.onAudioSubscribeStateChanged!(
             channel, uid, oldState, newState, elapseSinceLastState);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onVideoSubscribeStateChanged':
-        if (onVideoSubscribeStateChanged == null) break;
+      case 'onVideoSubscribeStateChanged':
+        if (rtcEngineEventHandler.onVideoSubscribeStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnVideoSubscribeStateChangedJson paramJson =
             RtcEngineEventHandlerOnVideoSubscribeStateChangedJson.fromJson(
                 jsonMap);
@@ -1320,14 +1613,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             oldState == null ||
             newState == null ||
             elapseSinceLastState == null) {
-          break;
+          return true;
         }
-        onVideoSubscribeStateChanged!(
+        rtcEngineEventHandler.onVideoSubscribeStateChanged!(
             channel, uid, oldState, newState, elapseSinceLastState);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onAudioPublishStateChanged':
-        if (onAudioPublishStateChanged == null) break;
+      case 'onAudioPublishStateChanged':
+        if (rtcEngineEventHandler.onAudioPublishStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnAudioPublishStateChangedJson paramJson =
             RtcEngineEventHandlerOnAudioPublishStateChangedJson.fromJson(
                 jsonMap);
@@ -1340,14 +1636,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             oldState == null ||
             newState == null ||
             elapseSinceLastState == null) {
-          break;
+          return true;
         }
-        onAudioPublishStateChanged!(
+        rtcEngineEventHandler.onAudioPublishStateChanged!(
             channel, oldState, newState, elapseSinceLastState);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onVideoPublishStateChanged':
-        if (onVideoPublishStateChanged == null) break;
+      case 'onVideoPublishStateChanged':
+        if (rtcEngineEventHandler.onVideoPublishStateChanged == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnVideoPublishStateChangedJson paramJson =
             RtcEngineEventHandlerOnVideoPublishStateChangedJson.fromJson(
                 jsonMap);
@@ -1362,14 +1661,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             oldState == null ||
             newState == null ||
             elapseSinceLastState == null) {
-          break;
+          return true;
         }
-        onVideoPublishStateChanged!(
+        rtcEngineEventHandler.onVideoPublishStateChanged!(
             source, channel, oldState, newState, elapseSinceLastState);
-        break;
+        return true;
 
-      case 'RtcEngineEventHandler_onExtensionEvent':
-        if (onExtensionEvent == null) break;
+      case 'onExtensionEvent':
+        if (rtcEngineEventHandler.onExtensionEvent == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnExtensionEventJson paramJson =
             RtcEngineEventHandlerOnExtensionEventJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -1381,39 +1683,49 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             extension == null ||
             key == null ||
             value == null) {
-          break;
+          return true;
         }
-        onExtensionEvent!(provider, extension, key, value);
-        break;
+        rtcEngineEventHandler.onExtensionEvent!(
+            provider, extension, key, value);
+        return true;
 
-      case 'RtcEngineEventHandler_onExtensionStarted':
-        if (onExtensionStarted == null) break;
+      case 'onExtensionStarted':
+        if (rtcEngineEventHandler.onExtensionStarted == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnExtensionStartedJson paramJson =
             RtcEngineEventHandlerOnExtensionStartedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         String? provider = paramJson.provider;
         String? extension = paramJson.extension;
         if (provider == null || extension == null) {
-          break;
+          return true;
         }
-        onExtensionStarted!(provider, extension);
-        break;
+        rtcEngineEventHandler.onExtensionStarted!(provider, extension);
+        return true;
 
-      case 'RtcEngineEventHandler_onExtensionStopped':
-        if (onExtensionStopped == null) break;
+      case 'onExtensionStopped':
+        if (rtcEngineEventHandler.onExtensionStopped == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnExtensionStoppedJson paramJson =
             RtcEngineEventHandlerOnExtensionStoppedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
         String? provider = paramJson.provider;
         String? extension = paramJson.extension;
         if (provider == null || extension == null) {
-          break;
+          return true;
         }
-        onExtensionStopped!(provider, extension);
-        break;
+        rtcEngineEventHandler.onExtensionStopped!(provider, extension);
+        return true;
 
-      case 'RtcEngineEventHandler_onExtensionError':
-        if (onExtensionError == null) break;
+      case 'onExtensionError':
+        if (rtcEngineEventHandler.onExtensionError == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnExtensionErrorJson paramJson =
             RtcEngineEventHandlerOnExtensionErrorJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -1425,13 +1737,17 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
             extension == null ||
             error == null ||
             message == null) {
-          break;
+          return true;
         }
-        onExtensionError!(provider, extension, error, message);
-        break;
+        rtcEngineEventHandler.onExtensionError!(
+            provider, extension, error, message);
+        return true;
 
-      case 'RtcEngineEventHandler_onUserAccountUpdatedEx':
-        if (onUserAccountUpdated == null) break;
+      case 'onUserAccountUpdatedEx':
+        if (rtcEngineEventHandler.onUserAccountUpdated == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
         RtcEngineEventHandlerOnUserAccountUpdatedJson paramJson =
             RtcEngineEventHandlerOnUserAccountUpdatedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
@@ -1439,61 +1755,30 @@ extension RtcEngineEventHandlerExt on RtcEngineEventHandler {
         int? remoteUid = paramJson.remoteUid;
         String? userAccount = paramJson.userAccount;
         if (connection == null || remoteUid == null || userAccount == null) {
-          break;
+          return true;
         }
         connection = connection.fillBuffers(buffers);
-        onUserAccountUpdated!(connection, remoteUid, userAccount);
-        break;
-      default:
-        break;
+        rtcEngineEventHandler.onUserAccountUpdated!(
+            connection, remoteUid, userAccount);
+        return true;
     }
-  }
-}
-
-class RtcEngineEventHandlerWrapper implements IrisEventHandler {
-  const RtcEngineEventHandlerWrapper(this.rtcEngineEventHandler);
-  final RtcEngineEventHandler rtcEngineEventHandler;
-  @override
-  bool operator ==(Object other) {
-    if (other.runtimeType != runtimeType) {
-      return false;
-    }
-    return other is RtcEngineEventHandlerWrapper &&
-        other.rtcEngineEventHandler == rtcEngineEventHandler;
+    return false;
   }
 
   @override
-  int get hashCode => rtcEngineEventHandler.hashCode;
-  @override
-  void onEvent(String event, String data, List<Uint8List> buffers) {
-    if (!event.startsWith('RtcEngineEventHandler')) return;
-    rtcEngineEventHandler.process(event, data, buffers);
-  }
-}
-
-extension MetadataObserverExt on MetadataObserver {
-  void process(String event, String data, List<Uint8List> buffers) {
-    final jsonMap = jsonDecode(data);
-    switch (event) {
-      case 'MetadataObserver_onMetadataReceived':
-        if (onMetadataReceived == null) break;
-        MetadataObserverOnMetadataReceivedJson paramJson =
-            MetadataObserverOnMetadataReceivedJson.fromJson(jsonMap);
-        paramJson = paramJson.fillBuffers(buffers);
-        Metadata? metadata = paramJson.metadata;
-        if (metadata == null) {
-          break;
-        }
-        metadata = metadata.fillBuffers(buffers);
-        onMetadataReceived!(metadata);
-        break;
-      default:
-        break;
+  bool handleEvent(
+      String eventName, String eventData, List<Uint8List> buffers) {
+    if (!eventName.startsWith('RtcEngineEventHandler')) return false;
+    final newEvent = eventName.replaceFirst('RtcEngineEventHandler_', '');
+    if (handleEventInternal(newEvent, eventData, buffers)) {
+      return true;
     }
+
+    return false;
   }
 }
 
-class MetadataObserverWrapper implements IrisEventHandler {
+class MetadataObserverWrapper implements EventLoopEventHandler {
   const MetadataObserverWrapper(this.metadataObserver);
   final MetadataObserver metadataObserver;
   @override
@@ -1508,52 +1793,42 @@ class MetadataObserverWrapper implements IrisEventHandler {
   @override
   int get hashCode => metadataObserver.hashCode;
   @override
-  void onEvent(String event, String data, List<Uint8List> buffers) {
-    if (!event.startsWith('MetadataObserver')) return;
-    metadataObserver.process(event, data, buffers);
-  }
-}
-
-extension DirectCdnStreamingEventHandlerExt on DirectCdnStreamingEventHandler {
-  void process(String event, String data, List<Uint8List> buffers) {
-    final jsonMap = jsonDecode(data);
-    switch (event) {
-      case 'DirectCdnStreamingEventHandler_onDirectCdnStreamingStateChanged':
-        if (onDirectCdnStreamingStateChanged == null) break;
-        DirectCdnStreamingEventHandlerOnDirectCdnStreamingStateChangedJson
-            paramJson =
-            DirectCdnStreamingEventHandlerOnDirectCdnStreamingStateChangedJson
-                .fromJson(jsonMap);
-        paramJson = paramJson.fillBuffers(buffers);
-        DirectCdnStreamingState? state = paramJson.state;
-        DirectCdnStreamingError? error = paramJson.error;
-        String? message = paramJson.message;
-        if (state == null || error == null || message == null) {
-          break;
+  bool handleEventInternal(
+      String eventName, String eventData, List<Uint8List> buffers) {
+    switch (eventName) {
+      case 'onMetadataReceived':
+        if (metadataObserver.onMetadataReceived == null) {
+          return true;
         }
-        onDirectCdnStreamingStateChanged!(state, error, message);
-        break;
-
-      case 'DirectCdnStreamingEventHandler_onDirectCdnStreamingStats':
-        if (onDirectCdnStreamingStats == null) break;
-        DirectCdnStreamingEventHandlerOnDirectCdnStreamingStatsJson paramJson =
-            DirectCdnStreamingEventHandlerOnDirectCdnStreamingStatsJson
-                .fromJson(jsonMap);
+        final jsonMap = jsonDecode(eventData);
+        MetadataObserverOnMetadataReceivedJson paramJson =
+            MetadataObserverOnMetadataReceivedJson.fromJson(jsonMap);
         paramJson = paramJson.fillBuffers(buffers);
-        DirectCdnStreamingStats? stats = paramJson.stats;
-        if (stats == null) {
-          break;
+        Metadata? metadata = paramJson.metadata;
+        if (metadata == null) {
+          return true;
         }
-        stats = stats.fillBuffers(buffers);
-        onDirectCdnStreamingStats!(stats);
-        break;
-      default:
-        break;
+        metadata = metadata.fillBuffers(buffers);
+        metadataObserver.onMetadataReceived!(metadata);
+        return true;
     }
+    return false;
+  }
+
+  @override
+  bool handleEvent(
+      String eventName, String eventData, List<Uint8List> buffers) {
+    if (!eventName.startsWith('MetadataObserver')) return false;
+    final newEvent = eventName.replaceFirst('MetadataObserver_', '');
+    if (handleEventInternal(newEvent, eventData, buffers)) {
+      return true;
+    }
+
+    return false;
   }
 }
 
-class DirectCdnStreamingEventHandlerWrapper implements IrisEventHandler {
+class DirectCdnStreamingEventHandlerWrapper implements EventLoopEventHandler {
   const DirectCdnStreamingEventHandlerWrapper(
       this.directCdnStreamingEventHandler);
   final DirectCdnStreamingEventHandler directCdnStreamingEventHandler;
@@ -1569,8 +1844,60 @@ class DirectCdnStreamingEventHandlerWrapper implements IrisEventHandler {
   @override
   int get hashCode => directCdnStreamingEventHandler.hashCode;
   @override
-  void onEvent(String event, String data, List<Uint8List> buffers) {
-    if (!event.startsWith('DirectCdnStreamingEventHandler')) return;
-    directCdnStreamingEventHandler.process(event, data, buffers);
+  bool handleEventInternal(
+      String eventName, String eventData, List<Uint8List> buffers) {
+    switch (eventName) {
+      case 'onDirectCdnStreamingStateChanged':
+        if (directCdnStreamingEventHandler.onDirectCdnStreamingStateChanged ==
+            null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
+        DirectCdnStreamingEventHandlerOnDirectCdnStreamingStateChangedJson
+            paramJson =
+            DirectCdnStreamingEventHandlerOnDirectCdnStreamingStateChangedJson
+                .fromJson(jsonMap);
+        paramJson = paramJson.fillBuffers(buffers);
+        DirectCdnStreamingState? state = paramJson.state;
+        DirectCdnStreamingError? error = paramJson.error;
+        String? message = paramJson.message;
+        if (state == null || error == null || message == null) {
+          return true;
+        }
+        directCdnStreamingEventHandler.onDirectCdnStreamingStateChanged!(
+            state, error, message);
+        return true;
+
+      case 'onDirectCdnStreamingStats':
+        if (directCdnStreamingEventHandler.onDirectCdnStreamingStats == null) {
+          return true;
+        }
+        final jsonMap = jsonDecode(eventData);
+        DirectCdnStreamingEventHandlerOnDirectCdnStreamingStatsJson paramJson =
+            DirectCdnStreamingEventHandlerOnDirectCdnStreamingStatsJson
+                .fromJson(jsonMap);
+        paramJson = paramJson.fillBuffers(buffers);
+        DirectCdnStreamingStats? stats = paramJson.stats;
+        if (stats == null) {
+          return true;
+        }
+        stats = stats.fillBuffers(buffers);
+        directCdnStreamingEventHandler.onDirectCdnStreamingStats!(stats);
+        return true;
+    }
+    return false;
+  }
+
+  @override
+  bool handleEvent(
+      String eventName, String eventData, List<Uint8List> buffers) {
+    if (!eventName.startsWith('DirectCdnStreamingEventHandler')) return false;
+    final newEvent =
+        eventName.replaceFirst('DirectCdnStreamingEventHandler_', '');
+    if (handleEventInternal(newEvent, eventData, buffers)) {
+      return true;
+    }
+
+    return false;
   }
 }
