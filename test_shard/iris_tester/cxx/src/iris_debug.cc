@@ -2,6 +2,8 @@
 #include "fake_irtcengine.hpp"
 #include "iris_cxx_api.h"
 #include "iris_rtc_engine.h"
+#include "rtcengine_eventhandler_trigger.hpp"
+#include "IAgoraRtcEngineEx.h"
 
 #include <map>
 #include <set>
@@ -10,6 +12,7 @@
 using namespace std;
 using namespace agora::rtc;
 using namespace agora::iris::rtc;
+using namespace agora::rtc::event;
 
 #define MOCK_FLAG_NONE 0
 #define MOCK_FLAG_RETCODE 1
@@ -131,4 +134,12 @@ IRIS_API IrisApiEnginePtr IRIS_CALL CreateDebugApiEngine()
   IrisApiEngine *engine = new IrisApiEngine(fakeRtcEngine);
 
   return engine;
+}
+
+IRIS_API void IRIS_CALL FireEvent(const char *event_name)
+{
+  auto *fakeRtcEngine = &g_fakeRtcEngine;
+  // fakeRtcEngine->eventHandler->onJoinChannelSuccess("testapi", 10, 100);
+
+  RtcEngineEventHandlerTrigger(dynamic_cast<IRtcEngineEventHandlerEx *>(fakeRtcEngine->eventHandler)).TriggerEvent();
 }

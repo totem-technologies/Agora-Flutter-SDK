@@ -94,6 +94,20 @@ class NativeIrisTesterBinding {
   late final _ExpectCalled = _ExpectCalledPtr.asFunction<
       int Function(ffi.Pointer<ffi.Int8>, ffi.Pointer<ffi.Int8>, int,
           ffi.Pointer<ffi.Pointer<ffi.Void>>, int)>();
+
+  void FireEvent(
+    ffi.Pointer<ffi.Int8> event_name,
+  ) {
+    return _FireEvent(
+      event_name,
+    );
+  }
+
+  late final _FireEventPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<ffi.Int8>)>>(
+          'FireEvent');
+  late final _FireEvent =
+      _FireEventPtr.asFunction<void Function(ffi.Pointer<ffi.Int8>)>();
 }
 
 typedef IrisApiEnginePtr = ffi.Pointer<ffi.Void>;

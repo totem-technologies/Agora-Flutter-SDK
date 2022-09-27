@@ -16,6 +16,14 @@ import 'disposable_object.dart';
 
 // ignore_for_file: public_member_api_docs
 
+int? _mockIrisApiEngineIntPtr;
+void setMockIrisApiEngineIntPtr(int? mockIrisApiEngineIntPtr) {
+  assert(() {
+    _mockIrisApiEngineIntPtr = mockIrisApiEngineIntPtr;
+    return true;
+  }());
+}
+
 const int kBasicResultLength = 64 * 1024;
 
 class CallApiResult {
@@ -170,9 +178,18 @@ class _ApiCallExecutor implements _ApiCallExecutorBaseAsync {
   final Set<IrisEventHandler> _irisEventHandlers = {};
   late final int irisApiEngineIntPtr;
 
-  static Future<void> _execute(List<SendPort> mainSendPorts) async {
-    SendPort mainApiCallSendPort = mainSendPorts[0];
-    SendPort mainEventSendPort = mainSendPorts[1];
+  static Future<void> _execute(List<Object?> args) async {
+    SendPort mainApiCallSendPort = args[0] as SendPort;
+    SendPort mainEventSendPort = args[1] as SendPort;
+    ffi.Pointer<ffi.Void>? irisApiEnginePtr;
+    // We only aim to pass the irisApiEngine to the executor in the integration test (debug mode)
+    assert(() {
+      if (args.length > 2) {
+        irisApiEnginePtr = ffi.Pointer.fromAddress(args[2] as int);
+      }
+
+      return true;
+    }());
     // Send a SendPort to the main isolate so that it can send JSON strings to
     // this isolate.
     // final apiCallPort = ReceivePort('IrisApiEngine_ApiCallPort');
@@ -180,7 +197,7 @@ class _ApiCallExecutor implements _ApiCallExecutorBaseAsync {
     // final eventPort = ReceivePort('IrisApiEngine_EventPort');
 
     _ApiCallExecutorInternal executor = _ApiCallExecutorInternal();
-    executor.initilize(mainEventSendPort);
+    executor.initilize(mainEventSendPort, irisApiEnginePtr);
     mainApiCallSendPort.send([
       apiCallPort.sendPort,
       executor.getIrisApiEngineIntPtr(),
@@ -244,7 +261,11 @@ class _ApiCallExecutor implements _ApiCallExecutorBaseAsync {
   Future<void> initilizeAsync() async {
     final apiCallPort = ReceivePort();
     final eventPort = ReceivePort();
-    await Isolate.spawn(_execute, [apiCallPort.sendPort, eventPort.sendPort]);
+    await Isolate.spawn(_execute, [
+      apiCallPort.sendPort,
+      eventPort.sendPort,
+      _mockIrisApiEngineIntPtr,
+    ]);
 
     // Convert the ReceivePort into a StreamQueue to receive messages from the
     // spawned isolate using a pull-based interface. Events are stored in this
@@ -286,31 +307,6 @@ class _ApiCallExecutor implements _ApiCallExecutorBaseAsync {
     return result;
   }
 
-  // @override
-  // Future<void> setupIrisRtcEngineEventHandlerAsync({SendPort? sendPort}) async {
-  //   requestPort.send(const _SetupIrisRtcEngineEventHandlerRequest());
-  //   await responseQueue.next;
-  // }
-
-  // @override
-  // Future<void> disposeIrisRtcEngineEventHandlerAsync() async {
-  //   requestPort.send(const _DisposeIrisRtcEngineEventHandlerRequest());
-  //   await responseQueue.next;
-  // }
-
-  // @override
-  // Future<void> disposeIrisMediaPlayerEventHandlerIfNeedAsync() async {
-  //   requestPort.send(const _DisposeIrisMediaPlayerEventHandlerRequest());
-  //   await responseQueue.next;
-  // }
-
-  // @override
-  // Future<void> setupIrisMediaPlayerEventHandlerIfNeedAsync(
-  //     {SendPort? sendPort}) async {
-  //   requestPort.send(const _SetupIrisMediaPlayerEventHandlerRequest());
-  //   await responseQueue.next;
-  // }
-
   @override
   void addEventHandler(IrisEventHandler eventHandler) {
     _irisEventHandlers.add(eventHandler);
@@ -337,12 +333,6 @@ class _ApiCallExecutor implements _ApiCallExecutorBaseAsync {
     final CallApiResult result = await responseQueue.next;
     return result;
   }
-
-  // @override
-  // Future<void> disposeAllEventHandlersAsync() async {
-  //   requestPort.send(const _DisposeAllEventHandlersRequest());
-  //   await responseQueue.next;
-  // }
 
   @override
   Future<void> startDumpVideoAsync(
@@ -376,26 +366,6 @@ class _IrisEventObserverRequest implements _Request {
   final IrisEventKey key;
 }
 
-// class _SetupIrisRtcEngineEventHandlerRequest implements _Request {
-//   const _SetupIrisRtcEngineEventHandlerRequest();
-// }
-
-// class _DisposeIrisRtcEngineEventHandlerRequest implements _Request {
-//   const _DisposeIrisRtcEngineEventHandlerRequest();
-// }
-
-// class _DisposeAllEventHandlersRequest implements _Request {
-//   const _DisposeAllEventHandlersRequest();
-// }
-
-// class _SetupIrisMediaPlayerEventHandlerRequest implements _Request {
-//   const _SetupIrisMediaPlayerEventHandlerRequest();
-// }
-
-// class _DisposeIrisMediaPlayerEventHandlerRequest implements _Request {
-//   const _DisposeIrisMediaPlayerEventHandlerRequest();
-// }
-
 class _StartDumpVideoRequest implements _Request {
   const _StartDumpVideoRequest(
       this.irisVideoFrameBufferManagerIntPtr, this.type, this.dir);
@@ -424,11 +394,12 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
       _irisEventHandlerObservers = {};
 
   @override
-  void initilize(SendPort sendPort) {
+  void initilize(SendPort sendPort, ffi.Pointer<ffi.Void>? irisApiEnginePtr) {
     _nativeIrisApiEngineBinding =
         NativeIrisApiEngineBinding(_loadAgoraFpaServiceLib());
     _nativeIrisApiEngineBinding.enableUseJsonArray(1);
-    _irisApiEnginePtr = _nativeIrisApiEngineBinding.CreateIrisApiEngine();
+    _irisApiEnginePtr =
+        irisApiEnginePtr ?? _nativeIrisApiEngineBinding.CreateIrisApiEngine();
 
     _irisEvent = IrisEvent();
     _irisEvent.setEventHandler(_SendableIrisEventHandler(sendPort));
@@ -447,59 +418,6 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
     assert(_irisApiEnginePtr != null);
     return _irisApiEnginePtr!.address;
   }
-
-  // @override
-  // void setupIrisRtcEngineEventHandler(SendPort sendPort) {
-  //   assert(_irisApiEnginePtr != null);
-
-  //   // _initIrisCEventHandlerIfNeed(sendPort);
-  //   assert(_irisCEventHandler != null);
-
-  //   if (_irisEventHandlerPtr != null) return;
-
-  //   _irisEventHandlerPtr =
-  //       _nativeIrisApiEngineBinding.SetIrisRtcEngineEventHandler(
-  //           _irisApiEnginePtr!, _irisCEventHandler!);
-  // }
-
-  // @override
-  // void disposeIrisRtcEngineEventHandler() {
-  //   if (_irisEventHandlerPtr != null && _irisCEventHandler != null) {
-  //     _nativeIrisApiEngineBinding.UnsetIrisRtcEngineEventHandler(
-  //         _irisApiEnginePtr!, _irisEventHandlerPtr!);
-
-  //     _nativeIrisApiEngineBinding.DestroyIrisEventHandler(
-  //         _irisEventHandlerExPtr!);
-  //     _irisEventHandlerExPtr = null;
-
-  //     calloc.free(_irisCEventHandler!);
-  //     _irisCEventHandler = null;
-  //     _irisEventHandlerPtr = null;
-  //   }
-  // }
-
-  // @override
-  // void disposeIrisMediaPlayerEventHandlerIfNeed() {
-  //   if (_irisMediaPlayerEventHandlerPtr != null) {
-  //     _nativeIrisApiEngineBinding.UnsetIrisMediaPlayerEventHandler(
-  //         _irisApiEnginePtr!, _irisMediaPlayerEventHandlerPtr!);
-
-  //     _irisMediaPlayerEventHandlerPtr = null;
-  //   }
-  // }
-
-  // @override
-  // void setupIrisMediaPlayerEventHandlerIfNeed(SendPort sendPort) {
-  //   assert(_irisApiEnginePtr != null);
-  //   if (_irisMediaPlayerEventHandlerPtr != null) return;
-
-  //   // _initIrisCEventHandlerIfNeed(sendPort);
-  //   assert(_irisCEventHandler != null);
-
-  //   _irisMediaPlayerEventHandlerPtr =
-  //       _nativeIrisApiEngineBinding.SetIrisMediaPlayerEventHandler(
-  //           _irisApiEnginePtr!, _irisCEventHandler!);
-  // }
 
   @override
   CallApiResult callIrisApi(
@@ -552,15 +470,6 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
           ..ref.buffer = bufferListPtr
           ..ref.length = bufferListLengthPtr.cast()
           ..ref.buffer_count = bufferLength;
-
-        // final irisReturnCode = _nativeIrisApiEngineBinding.CallIrisApi(
-        //     _irisApiEnginePtr!,
-        //     funcNamePointer,
-        //     paramsPointer,
-        //     paramsPointerUtf8Length,
-        //     bufferListPtr,
-        //     bufferLength,
-        //     resultPointer);
 
         final irisReturnCode = _nativeIrisApiEngineBinding.CallIrisApi(
             _irisApiEnginePtr!, apiParam);
@@ -724,19 +633,9 @@ class BufferParam {
 }
 
 abstract class _ApiCallExecutorBase {
-  void initilize(SendPort sendPort);
+  void initilize(SendPort sendPort, ffi.Pointer<ffi.Void>? irisApiEnginePtr);
 
   int getIrisApiEngineIntPtr();
-
-  // void setupIrisRtcEngineEventHandler(SendPort sendPort);
-
-  // void disposeIrisRtcEngineEventHandler();
-
-  // void disposeAllEventHandlers();
-
-  // void disposeIrisMediaPlayerEventHandlerIfNeed();
-
-  // void setupIrisMediaPlayerEventHandlerIfNeed(SendPort sendPort);
 
   CallApiResult callIrisApi(
     String funcName,

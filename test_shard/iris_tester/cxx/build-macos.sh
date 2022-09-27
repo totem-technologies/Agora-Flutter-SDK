@@ -7,6 +7,9 @@ MY_PATH=$(dirname "$0")
 
 SRC_PATH=${MY_PATH}
 
+ARCHS="arm64 x86_64"
+BUILD_TYPE="Debug"
+
 # pushd ${MY_PATH}/../../../macos
 #     flutter packages get
 #     pod install
@@ -17,16 +20,28 @@ if [ ! -d "$SRC_PATH/build/mac" ]; then
 fi
 
 pushd ${SRC_PATH}/build/mac
-
 cmake \
-    -G Xcode \
-    -DPLATFORM="MAC" \
-    -DCMAKE_OSX_ARCHITECTURES="x86_64" \
-    -DCMAKE_BUILD_TYPE="Debug" \
-    -DRUN_TEST=1 \
-    "${SRC_PATH}"
-cmake --build . --config "Debug"
-
+  -G "Xcode" \
+  -DCMAKE_TOOLCHAIN_FILE="${SRC_PATH}/ios.toolchain.cmake" \
+  -DPLATFORM="MAC" \
+  -DARCHS="$ARCHS" \
+  -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+  "$SRC_PATH"
+cmake --build . --config "$BUILD_TYPE"
 popd
 
-cp -RP "${SRC_PATH}/build/mac/Debug/libiris_tester.a" "${SRC_PATH}/../macos/libiris_tester.a"
+# pushd ${SRC_PATH}/build/mac
+
+# cmake \
+#     -G Xcode \
+#     -DPLATFORM="MAC" \
+#     -DCMAKE_OSX_ARCHITECTURES="x86_64" \
+#     -DCMAKE_BUILD_TYPE="Debug" \
+#     -DRUN_TEST=1 \
+#     "${SRC_PATH}"
+# cmake --build . --config "Debug"
+
+# popd
+
+rm -rf ${SRC_PATH}/../macos/iris_tester_handler.framework
+cp -RP "${SRC_PATH}/build/mac/Debug/iris_tester_handler.framework" "${SRC_PATH}/../macos"

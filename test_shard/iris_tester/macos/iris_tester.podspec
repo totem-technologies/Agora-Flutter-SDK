@@ -14,10 +14,10 @@ A new Flutter plugin project.
   s.author           = { 'Your Company' => 'email@example.com' }
 
   s.source           = { :path => '.' }
-  s.source_files     = 'Classes/**/*'
+  s.source_files     = 'Classes/**/*', '../cxx/src/*.h'
   s.dependency 'FlutterMacOS'
-
-  s.vendored_libraries = 'libiris_tester.a'
+  s.dependency 'iris_tester_handler'
+  # s.libraries = 'iris_tester', 'c++', 'resolv'
 
   s.platform = :osx, '10.11'
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }

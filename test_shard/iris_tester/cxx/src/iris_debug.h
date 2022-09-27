@@ -14,4 +14,6 @@ IRIS_API bool IRIS_CALL ExpectCalled(const char *func_name, const char *params,
                                      uint32_t paramLength, void **buffers,
                                      uint32_t buffer_count);
 
+IRIS_API void IRIS_CALL FireEvent(const char *event_name);
+
 #endif

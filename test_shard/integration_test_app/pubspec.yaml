@@ -31,7 +31,10 @@ dependencies:
     sdk: flutter
 
   agora_rtc_engine:
-    path: ../
+    path: ../../
+
+  iris_tester:
+    path: ../iris_tester
 
 
   # The following adds the Cupertino Icons font to your application.

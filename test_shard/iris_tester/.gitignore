@@ -30,3 +30,6 @@ migrate_working_dir/
 build/
 
 macos/libiris_tester.a
+macos/iris_tester.framework
+macos/iris_tester_handler.framework
+macos/iris_tester_handler.podspec
