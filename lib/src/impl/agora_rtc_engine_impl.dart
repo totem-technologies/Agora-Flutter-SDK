@@ -269,6 +269,8 @@ class RtcEngineImpl extends rtc_engine_ex_binding.RtcEngineExImpl
 
     _eventLoop.terminate();
 
+    await apiCaller.disposeAllEventHandlersAsync();
+
     await _objectPool.clear();
 
     await _globalVideoViewController

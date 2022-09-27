@@ -152,10 +152,10 @@ class ApiCaller implements _ApiCallExecutorBaseAsync {
     return _apiCallExecutor!.callIrisEventAsync(key, params);
   }
 
-  // @override
-  // Future<void> disposeAllEventHandlersAsync() {
-  //   return _apiCallExecutor!.disposeAllEventHandlersAsync();
-  // }
+  @override
+  Future<void> disposeAllEventHandlersAsync() {
+    return _apiCallExecutor!.disposeAllEventHandlersAsync();
+  }
 
   @override
   Future<void> startDumpVideoAsync(
@@ -185,7 +185,10 @@ class _ApiCallExecutor implements _ApiCallExecutorBaseAsync {
     // We only aim to pass the irisApiEngine to the executor in the integration test (debug mode)
     assert(() {
       if (args.length > 2) {
-        irisApiEnginePtr = ffi.Pointer.fromAddress(args[2] as int);
+        final intptr = args[2] as int?;
+        if (intptr != null) {
+          irisApiEnginePtr = ffi.Pointer.fromAddress(intptr);
+        }
       }
 
       return true;
@@ -238,12 +241,11 @@ class _ApiCallExecutor implements _ApiCallExecutorBaseAsync {
       // } else if (request is _DisposeIrisMediaPlayerEventHandlerRequest) {
       //   executor.disposeIrisMediaPlayerEventHandlerIfNeed();
       //   mainApiCallSendPort.send(0);
-      // } else if (request is _DisposeAllEventHandlersRequest) {
-      //   executor.disposeAllEventHandlers();
-      //   mainApiCallSendPort.send(0);
       // }
-
-      else if (request is _StartDumpVideoRequest) {
+      else if (request is _DisposeAllEventHandlersRequest) {
+        executor.disposeAllEventHandlers();
+        mainApiCallSendPort.send(0);
+      } else if (request is _StartDumpVideoRequest) {
         executor.startDumpVideo(request.irisVideoFrameBufferManagerIntPtr,
             request.type, request.dir);
         mainApiCallSendPort.send(0);
@@ -347,6 +349,12 @@ class _ApiCallExecutor implements _ApiCallExecutorBaseAsync {
     requestPort.send(_StopDumpVideoRequest(irisVideoFrameBufferManagerIntPtr));
     await responseQueue.next;
   }
+
+  @override
+  Future<void> disposeAllEventHandlersAsync() async {
+    requestPort.send(const _DisposeAllEventHandlersRequest());
+    await responseQueue.next;
+  }
 }
 
 abstract class _Request {}
@@ -381,6 +389,10 @@ class _StopDumpVideoRequest implements _Request {
   final int irisVideoFrameBufferManagerIntPtr;
 }
 
+class _DisposeAllEventHandlersRequest implements _Request {
+  const _DisposeAllEventHandlersRequest();
+}
+
 class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
   late final NativeIrisApiEngineBinding _nativeIrisApiEngineBinding;
   IrisApiEnginePtr? _irisApiEnginePtr;
@@ -398,8 +410,8 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
     _nativeIrisApiEngineBinding =
         NativeIrisApiEngineBinding(_loadAgoraFpaServiceLib());
     _nativeIrisApiEngineBinding.enableUseJsonArray(1);
-    _irisApiEnginePtr =
-        irisApiEnginePtr ?? _nativeIrisApiEngineBinding.CreateIrisApiEngine();
+    _irisApiEnginePtr = irisApiEnginePtr ??
+        _nativeIrisApiEngineBinding.CreateIrisApiEngine(ffi.nullptr);
 
     _irisEvent = IrisEvent();
     _irisEvent.setEventHandler(_SendableIrisEventHandler(sendPort));
@@ -466,7 +478,7 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
           ..ref.event = funcNamePointer
           ..ref.data = paramsPointer
           ..ref.data_size = paramsPointerUtf8Length
-          // ..ref.result = resultPointer.cast<Array<Int8>>()
+          ..ref.result = resultPointer
           ..ref.buffer = bufferListPtr
           ..ref.length = bufferListLengthPtr.cast()
           ..ref.buffer_count = bufferLength;
@@ -477,15 +489,6 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
         if (irisReturnCode < 0) {
           return CallApiResult(irisReturnCode: irisReturnCode, data: const {});
         }
-
-        // final resultList = Int8List(65536);
-        for (int i = 0; i < kBasicResultLength; i++) {
-          resultPointer[i] = apiParam.ref.result[i];
-        }
-
-        // Utf8Decoder(allowMalformed: true).convert(resultList);
-
-        // final String result = utf8.decode(resultList);//String.fromCharCodes(resultList);
 
         final result = resultPointer.cast<Utf8>().toDartString();
 
@@ -548,8 +551,6 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
   @override
   void dispose() {
     assert(_irisApiEnginePtr != null);
-
-    _destroyObservers();
 
     calloc.free(_irisCEventHandler!);
     _irisCEventHandler = null;
@@ -624,6 +625,11 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
     _nativeIrisApiEngineBinding.StopDumpVideo(
         ffi.Pointer.fromAddress(irisVideoFrameBufferManagerIntPtr));
   }
+
+  @override
+  void disposeAllEventHandlers() {
+    _destroyObservers();
+  }
 }
 
 class BufferParam {
@@ -651,6 +657,8 @@ abstract class _ApiCallExecutorBase {
 
   CallApiResult callIrisEvent(IrisEventKey key, String params);
 
+  void disposeAllEventHandlers();
+
   void dispose();
 
   void startDumpVideo(
@@ -668,7 +676,7 @@ abstract class _ApiCallExecutorBaseAsync {
 
   // Future<void> disposeIrisRtcEngineEventHandlerAsync();
 
-  // Future<void> disposeAllEventHandlersAsync();
+  Future<void> disposeAllEventHandlersAsync();
 
   // Future<void> disposeIrisMediaPlayerEventHandlerIfNeedAsync();
 

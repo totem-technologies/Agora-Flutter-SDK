@@ -326,15 +326,19 @@ class NativeIrisApiEngineBinding {
       int Function(IrisApiEnginePtr, ffi.Pointer<ApiParam>)>();
 
   /// IrisRtcEngine
-  IrisApiEnginePtr CreateIrisApiEngine() {
-    return _CreateIrisApiEngine();
+  IrisApiEnginePtr CreateIrisApiEngine(
+    ffi.Pointer<ffi.Void> rtcEngine,
+  ) {
+    return _CreateIrisApiEngine(
+      rtcEngine,
+    );
   }
 
-  late final _CreateIrisApiEnginePtr =
-      _lookup<ffi.NativeFunction<IrisApiEnginePtr Function()>>(
-          'CreateIrisApiEngine');
-  late final _CreateIrisApiEngine =
-      _CreateIrisApiEnginePtr.asFunction<IrisApiEnginePtr Function()>();
+  late final _CreateIrisApiEnginePtr = _lookup<
+          ffi.NativeFunction<IrisApiEnginePtr Function(ffi.Pointer<ffi.Void>)>>(
+      'CreateIrisApiEngine');
+  late final _CreateIrisApiEngine = _CreateIrisApiEnginePtr.asFunction<
+      IrisApiEnginePtr Function(ffi.Pointer<ffi.Void>)>();
 
   void DestroyIrisApiEngine(
     IrisApiEnginePtr engine_ptr,
@@ -450,25 +454,6 @@ class EventParam extends ffi.Struct {
   external int data_size;
 
   external ffi.Pointer<ffi.Int8> result;
-
-  external ffi.Pointer<ffi.Pointer<ffi.Void>> buffer;
-
-  external ffi.Pointer<ffi.Uint32> length;
-
-  @ffi.Uint32()
-  external int buffer_count;
-}
-
-class ApiParam extends ffi.Struct {
-  external ffi.Pointer<ffi.Int8> event;
-
-  external ffi.Pointer<ffi.Int8> data;
-
-  @ffi.Uint32()
-  external int data_size;
-
-  @ffi.Array.multi([65536])
-  external ffi.Array<ffi.Int8> result;
 
   external ffi.Pointer<ffi.Pointer<ffi.Void>> buffer;
 
@@ -609,6 +594,7 @@ abstract class IRIS_API_ERROR_CODE_TYPE {
 }
 
 typedef IrisApiEnginePtr = ffi.Pointer<ffi.Void>;
+typedef ApiParam = EventParam;
 typedef IrisEventHandlerHandle = ffi.Pointer<ffi.Void>;
 
 const int kBasicResultLength = 65536;
