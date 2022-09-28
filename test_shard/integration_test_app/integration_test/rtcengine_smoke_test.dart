@@ -128,6 +128,7 @@ void main() {
       );
 
       await remoteUser.leaveChannel();
+      await rtcEngine.leaveChannel();
       await rtcEngine.release();
     },
 //  skip: !(),

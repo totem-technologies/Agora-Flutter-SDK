@@ -65,8 +65,8 @@ void main() {
       expect(eventCalled, isTrue);
 
       mediaEngine.unregisterAudioFrameObserver(observer);
-      await rtcEngine.leaveChannel();
       await remoteUser.leaveChannel();
+      await rtcEngine.leaveChannel();
 
       await mediaEngine.release();
       await rtcEngine.release();
@@ -82,22 +82,19 @@ void main() {
       String engineAppId = const String.fromEnvironment('TEST_APP_ID',
           defaultValue: '<YOUR_APP_ID>');
 
-      RtcEngine rtcEngine = createAgoraRtcEngine();
+      RtcEngineEx rtcEngine = createAgoraRtcEngineEx();
       await rtcEngine.initialize(RtcEngineContext(
         appId: engineAppId,
         areaCode: AreaCode.areaCodeGlob.value(),
       ));
 
       final mediaEngine = rtcEngine.getMediaEngine();
-      Completer<bool>? eventCalledCompleter = Completer();
+      Completer<bool> eventCalledCompleter = Completer();
 
       final VideoFrameObserver observer = VideoFrameObserver(
         onCaptureVideoFrame: (videoFrame) {
           debugPrint(
               '[onCaptureVideoFrame] videoFrame: ${videoFrame.toJson()}');
-
-          if (eventCalledCompleter == null) return;
-          eventCalledCompleter.complete(true);
         },
         onRenderVideoFrame:
             (String channelId, int remoteUid, VideoFrame videoFrame) {
@@ -105,6 +102,8 @@ void main() {
           //     '[onRenderVideoFrame] channelId: $channelId, remoteUid: $remoteUid, videoFrame: ${videoFrame.toJson()}');
           debugPrint(
               '[onRenderVideoFrame] channelId: $channelId, remoteUid: $remoteUid, videoFrame: ${videoFrame.toJson()}');
+          if (eventCalledCompleter.isCompleted) return;
+          eventCalledCompleter.complete(true);
         },
       );
 
@@ -124,11 +123,15 @@ void main() {
         ),
       );
 
+      final remoteUser = FakeRemoteUser(rtcEngine);
+
+      await remoteUser.joinChannel('testonaction');
+
       final eventCalled = await eventCalledCompleter.future;
       expect(eventCalled, isTrue);
-      eventCalledCompleter = null;
 
       mediaEngine.unregisterVideoFrameObserver(observer);
+      await remoteUser.leaveChannel();
       await rtcEngine.leaveChannel();
 
       await mediaEngine.release();
