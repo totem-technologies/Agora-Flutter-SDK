@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
-import 'package:agora_rtc_engine/src/impl/api_caller.dart';
-import 'package:iris_tester/iris_tester.dart';
 
 void main() {
   runApp(const MyApp());
@@ -55,47 +53,47 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
-    @override
+  @override
   void initState() {
     super.initState();
-    
+
     // _init();
   }
 
   void _init() async {
-      String engineAppId = const String.fromEnvironment('TEST_APP_ID',
-          defaultValue: '<YOUR_APP_ID>');
+//       String engineAppId = const String.fromEnvironment('TEST_APP_ID',
+//           defaultValue: '<YOUR_APP_ID>');
 
-      final irisTester = IrisTester();
-      final debugApiEngineIntPtr = irisTester.createDebugApiEngine();
-      setMockIrisApiEngineIntPtr(debugApiEngineIntPtr);
+//       final irisTester = IrisTester();
+//       final debugApiEngineIntPtr = irisTester.createDebugApiEngine();
+//       setMockIrisApiEngineIntPtr(debugApiEngineIntPtr);
 
-      RtcEngine rtcEngine = createAgoraRtcEngine();
-      await rtcEngine.initialize(RtcEngineContext(
-        appId: engineAppId,
-        areaCode: AreaCode.areaCodeGlob.value(),
-      ));
+//       RtcEngine rtcEngine = createAgoraRtcEngine();
+//       await rtcEngine.initialize(RtcEngineContext(
+//         appId: engineAppId,
+//         areaCode: AreaCode.areaCodeGlob.value(),
+//       ));
 
-      final Completer<bool> calledEventCompleter = Completer();
-      final eventHandler = RtcEngineEventHandler(
-        onJoinChannelSuccess: (connection, elapsed) {
-          calledEventCompleter.complete(true);
-        },
-      );
-      rtcEngine.registerEventHandler(eventHandler);
+//       final Completer<bool> calledEventCompleter = Completer();
+//       final eventHandler = RtcEngineEventHandler(
+//         onJoinChannelSuccess: (connection, elapsed) {
+//           calledEventCompleter.complete(true);
+//         },
+//       );
+//       rtcEngine.registerEventHandler(eventHandler);
 
-      await Future.delayed(const Duration(seconds: 1));
+//       await Future.delayed(const Duration(seconds: 1));
 
-      irisTester.fireEvent('');
+//       irisTester.fireEvent('');
 
-      final calledEvent = await calledEventCompleter.future;
+//       final calledEvent = await calledEventCompleter.future;
 
-print('calledEvent: $calledEvent');
-      // expect(calledEvent, isTrue);
+// print('calledEvent: $calledEvent');
+//       // expect(calledEvent, isTrue);
 
-      rtcEngine.unregisterEventHandler(eventHandler);
+//       rtcEngine.unregisterEventHandler(eventHandler);
 
-      await rtcEngine.release();
+//       await rtcEngine.release();
   }
 
   void _incrementCounter() {
