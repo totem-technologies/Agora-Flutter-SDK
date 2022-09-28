@@ -5,7 +5,7 @@ set -x
 
 flutter packages get
 
-cd integration_test_app
+cd test_shard/integration_test_app
 
 # pushd iris_integration_test
 # git submodule update
