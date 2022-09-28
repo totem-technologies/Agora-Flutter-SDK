@@ -7,7 +7,7 @@
 #include <map>
 #include <mutex>
 
-#include <iris_rtc_cxx_api.h>
+#include <iris_cxx_api.h>
 #include "iris_rtc_raw_data.h"
 #include "iris_video_processor_cxx.h"
 
