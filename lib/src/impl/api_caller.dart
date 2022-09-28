@@ -552,6 +552,8 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
   void dispose() {
     assert(_irisApiEnginePtr != null);
 
+    _irisEvent.dispose();
+
     calloc.free(_irisCEventHandler!);
     _irisCEventHandler = null;
 
