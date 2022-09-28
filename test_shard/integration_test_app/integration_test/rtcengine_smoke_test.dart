@@ -12,6 +12,8 @@ import 'generated/rtcengine_smoke_test.generated.dart' as generated;
 import 'package:integration_test_app/main.dart' as app;
 import 'package:path/path.dart' as path;
 
+import 'util/fake_remote_user.dart';
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -73,29 +75,34 @@ void main() {
       String engineAppId = const String.fromEnvironment('TEST_APP_ID',
           defaultValue: '<YOUR_APP_ID>');
 
-      RtcEngine rtcEngine = createAgoraRtcEngine();
+      RtcEngineEx rtcEngine = createAgoraRtcEngineEx();
       await rtcEngine.initialize(RtcEngineContext(
         appId: engineAppId,
         areaCode: AreaCode.areaCodeGlob.value(),
       ));
       await rtcEngine.enableVideo();
 
-      Completer<bool>? eventCalledCompleter = Completer();
+      Completer<bool> eventCalledCompleter = Completer();
       final AudioEncodedFrameObserver observer = AudioEncodedFrameObserver(
         onRecordAudioEncodedFrame: (Uint8List frameBuffer, int length,
             EncodedAudioFrameInfo audioEncodedFrameInfo) {
-          if (eventCalledCompleter == null) return;
-          eventCalledCompleter.complete(true);
+          debugPrint('onRecordAudioEncodedFrame');
         },
         onPlaybackAudioEncodedFrame: (Uint8List frameBuffer, int length,
-            EncodedAudioFrameInfo audioEncodedFrameInfo) {},
+            EncodedAudioFrameInfo audioEncodedFrameInfo) {
+          debugPrint('onPlaybackAudioEncodedFrame');
+        },
         onMixedAudioEncodedFrame: (Uint8List frameBuffer, int length,
-            EncodedAudioFrameInfo audioEncodedFrameInfo) {},
+            EncodedAudioFrameInfo audioEncodedFrameInfo) {
+          debugPrint('onMixedAudioEncodedFrame');
+          if (eventCalledCompleter.isCompleted) return;
+          eventCalledCompleter.complete(true);
+        },
       );
       rtcEngine.registerAudioEncodedFrameObserver(
           config: const AudioEncodedFrameObserverConfig(
               postionType: AudioEncodedFrameObserverPosition
-                  .audioEncodedFrameObserverPositionRecord,
+                  .audioEncodedFrameObserverPositionMixed,
               encodingType: AudioEncodingType.audioEncodingTypeAac16000Medium),
           observer: observer);
 
@@ -109,14 +116,18 @@ void main() {
         ),
       );
 
+      final remoteUser = FakeRemoteUser(rtcEngine);
+
+      await remoteUser.joinChannel('testonaction');
+
       final eventCalled = await eventCalledCompleter.future;
       expect(eventCalled, isTrue);
-      eventCalledCompleter = null;
 
       rtcEngine.unregisterAudioEncodedFrameObserver(
         observer,
       );
 
+      await remoteUser.leaveChannel();
       await rtcEngine.release();
     },
 //  skip: !(),

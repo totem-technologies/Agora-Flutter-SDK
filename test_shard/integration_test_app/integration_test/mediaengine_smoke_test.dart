@@ -7,6 +7,8 @@ import 'package:integration_test/integration_test.dart';
 import 'generated/mediaengine_smoke_test.generated.dart' as generated;
 import 'package:integration_test_app/main.dart' as app;
 
+import 'util/fake_remote_user.dart';
+
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
@@ -21,20 +23,20 @@ void main() {
       String engineAppId = const String.fromEnvironment('TEST_APP_ID',
           defaultValue: '<YOUR_APP_ID>');
 
-      RtcEngine rtcEngine = createAgoraRtcEngine();
+      RtcEngineEx rtcEngine = createAgoraRtcEngineEx();
       await rtcEngine.initialize(RtcEngineContext(
         appId: engineAppId,
         areaCode: AreaCode.areaCodeGlob.value(),
       ));
 
       final mediaEngine = rtcEngine.getMediaEngine();
-      Completer<bool>? eventCalledCompleter = Completer();
+      Completer<bool> eventCalledCompleter = Completer();
       final AudioFrameObserver observer = AudioFrameObserver(
-        onRecordAudioFrame: (String channelId, AudioFrame audioFrame) {
-          if (eventCalledCompleter == null) return;
+        onRecordAudioFrame: (String channelId, AudioFrame audioFrame) {},
+        onPlaybackAudioFrame: (String channelId, AudioFrame audioFrame) {
+          if (eventCalledCompleter.isCompleted) return;
           eventCalledCompleter.complete(true);
         },
-        onPlaybackAudioFrame: (String channelId, AudioFrame audioFrame) {},
         onMixedAudioFrame: (String channelId, AudioFrame audioFrame) {},
         onPlaybackAudioFrameBeforeMixing:
             (String channelId, int uid, AudioFrame audioFrame) {},
@@ -55,12 +57,16 @@ void main() {
         ),
       );
 
+      final remoteUser = FakeRemoteUser(rtcEngine);
+
+      await remoteUser.joinChannel('testonaction');
+
       final eventCalled = await eventCalledCompleter.future;
       expect(eventCalled, isTrue);
-      eventCalledCompleter = null;
 
       mediaEngine.unregisterAudioFrameObserver(observer);
       await rtcEngine.leaveChannel();
+      await remoteUser.leaveChannel();
 
       await mediaEngine.release();
       await rtcEngine.release();
