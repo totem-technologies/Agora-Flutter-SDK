@@ -12,7 +12,7 @@ import 'generated/rtcengine_smoke_test.generated.dart' as generated;
 import 'package:integration_test_app/main.dart' as app;
 import 'package:path/path.dart' as path;
 
-import 'util/fake_remote_user.dart';
+import 'package:integration_test_app/fake_remote_user.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -117,7 +117,6 @@ void main() {
       );
 
       final remoteUser = FakeRemoteUser(rtcEngine);
-
       await remoteUser.joinChannel('testonaction');
 
       final eventCalled = await eventCalledCompleter.future;

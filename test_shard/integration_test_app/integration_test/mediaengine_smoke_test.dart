@@ -7,7 +7,7 @@ import 'package:integration_test/integration_test.dart';
 import 'generated/mediaengine_smoke_test.generated.dart' as generated;
 import 'package:integration_test_app/main.dart' as app;
 
-import 'util/fake_remote_user.dart';
+import 'package:integration_test_app/fake_remote_user.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
