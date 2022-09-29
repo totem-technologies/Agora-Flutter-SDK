@@ -465,7 +465,7 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
 
         for (int i = 0; i < bufferList.length; i++) {
           final bufferParam = bufferList[i];
-          bufferListPtr[i] = bufferParam.ptr;
+          bufferListPtr[i] = ffi.Pointer<ffi.Uint64>.fromAddress(bufferParam.intPtr).cast() ;
           bufferListLengthPtr[i] = bufferParam.length;
         }
       } else {
@@ -519,17 +519,17 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
         for (int i = 0; i < bufferLength; i++) {
           final buffer = buffers[i];
           if (buffer.isEmpty) {
-            buffersPtrList.add(BufferParam(ffi.nullptr, 0));
+            buffersPtrList.add(BufferParam(0, 0));
             continue;
           }
           final ffi.Pointer<ffi.Uint8> bufferData =
-              calloc.allocate<ffi.Uint8>(buffer.length);
+              arena.allocate<ffi.Uint8>(buffer.length);
 
           final pointerList = bufferData.asTypedList(buffer.length);
           pointerList.setAll(0, buffer);
 
           buffersPtrList
-              .add(BufferParam(bufferData.cast<ffi.Void>(), buffer.length));
+              .add(BufferParam(bufferData.address, buffer.length));
         }
       }
 
@@ -635,8 +635,8 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
 }
 
 class BufferParam {
-  const BufferParam(this.ptr, this.length);
-  final ffi.Pointer<ffi.Void> ptr;
+  const BufferParam(this.intPtr, this.length);
+  final int intPtr;
   final int length;
 }
 
@@ -789,7 +789,7 @@ class _IrisEventHandlerObserver implements DisposableNativeIrisEventHandler {
       apiCallExecutorBase.callIrisApi(
         key.registerName,
         params,
-        bufferList: [BufferParam(_observerPtr, 1)],
+        bufferList: [BufferParam(_observerPtr.address, 1)],
       );
     });
   }
@@ -813,7 +813,7 @@ class _IrisEventHandlerObserver implements DisposableNativeIrisEventHandler {
           key.unregisterName.toNativeUtf8(allocator: arena).cast<ffi.Int8>();
 
       apiCallExecutorBase.callIrisApi(key.unregisterName, params,
-          bufferList: [BufferParam(_observerPtr, 1)]);
+          bufferList: [BufferParam(_observerPtr.address, 1)]);
 
       nativeIrisApiEngineBinding.DestroyIrisEventHandler(_observerPtr);
     });
