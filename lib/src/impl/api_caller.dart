@@ -441,7 +441,7 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
 
     return using<CallApiResult>((Arena arena) {
       final ffi.Pointer<ffi.Int8> resultPointer =
-          arena.allocate<ffi.Int8>(kBasicResultLength).cast<ffi.Int8>();
+          arena.allocate<ffi.Int8>(kBasicResultLength);
 
       final ffi.Pointer<ffi.Int8> funcNamePointer =
           funcName.toNativeUtf8(allocator: arena).cast<ffi.Int8>();
@@ -480,7 +480,7 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
           ..ref.data_size = paramsPointerUtf8Length
           ..ref.result = resultPointer
           ..ref.buffer = bufferListPtr
-          ..ref.length = bufferListLengthPtr.cast()
+          ..ref.length = bufferListLengthPtr
           ..ref.buffer_count = bufferLength;
 
         final irisReturnCode = _nativeIrisApiEngineBinding.CallIrisApi(
