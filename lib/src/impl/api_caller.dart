@@ -453,19 +453,21 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
           paramsPointerUtf8.cast<ffi.Int8>();
 
       // ffi.Pointer<ffi.Void> bufferPointer;
-      ffi.Pointer<ffi.Pointer<ffi.Void>> bufferListPtr;
+      ffi.Pointer<ffi.Pointer<ffi.UintPtr>> bufferListPtr;
       ffi.Pointer<ffi.Uint32> bufferListLengthPtr;
       int bufferLength = bufferList?.length ?? 0;
 
       if (bufferList != null) {
         bufferListPtr =
-            arena.allocate(bufferList.length * ffi.sizeOf<ffi.Uint64>());
+            arena.allocate(bufferList.length * ffi.sizeOf<ffi.UintPtr>());
 
         bufferListLengthPtr = arena.allocate<ffi.Uint32>(bufferList.length);
 
         for (int i = 0; i < bufferList.length; i++) {
           final bufferParam = bufferList[i];
-          bufferListPtr[i] = ffi.Pointer<ffi.Uint64>.fromAddress(bufferParam.intPtr).cast() ;
+          bufferListPtr[i] =
+              ffi.Pointer<ffi.UintPtr>.fromAddress(bufferParam.intPtr);
+          // ffi.Pointer<ffi.Uint64>.fromAddress(bufferParam.intPtr).cast();
           bufferListLengthPtr[i] = bufferParam.length;
         }
       } else {
@@ -479,7 +481,7 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
           ..ref.data = paramsPointer
           ..ref.data_size = paramsPointerUtf8Length
           ..ref.result = resultPointer
-          ..ref.buffer = bufferListPtr
+          ..ref.buffer = bufferListPtr.cast()
           ..ref.length = bufferListLengthPtr
           ..ref.buffer_count = bufferLength;
 
@@ -519,7 +521,7 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
         for (int i = 0; i < bufferLength; i++) {
           final buffer = buffers[i];
           if (buffer.isEmpty) {
-            buffersPtrList.add(BufferParam(0, 0));
+            buffersPtrList.add(const BufferParam(0, 0));
             continue;
           }
           final ffi.Pointer<ffi.Uint8> bufferData =
@@ -528,8 +530,7 @@ class _ApiCallExecutorInternal implements _ApiCallExecutorBase {
           final pointerList = bufferData.asTypedList(buffer.length);
           pointerList.setAll(0, buffer);
 
-          buffersPtrList
-              .add(BufferParam(bufferData.address, buffer.length));
+          buffersPtrList.add(BufferParam(bufferData.address, buffer.length));
         }
       }
 
