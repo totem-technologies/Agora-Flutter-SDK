@@ -44,7 +44,7 @@ class FakeRemoteUser {
 
     await mediaPlayerController.open(
         url:
-            'https://agora-adc-artifacts.oss-cn-beijing.aliyuncs.com/video/meta_live_mpk.mov',
+            'https://agoracdn.s3.us-west-1.amazonaws.com/videos/Agora+Brand+Video+2022.mp4',
         startPos: 0);
 
     await mediaPlayerControllerPlayed.future;
